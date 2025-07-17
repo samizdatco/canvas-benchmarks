@@ -40,7 +40,7 @@ export const tests = {
     note: "`canvas` converts the input SVG to a bitmap rather than exporting it as a vector"
   },
   "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:50},
-  "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:50, omit:["wasm"]},
+  "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:150, omit:["wasm"]},
   "gradients": {label:"Gradients", test:drawGradients, rounds:150},
   "text": {label:"Basic text", test:drawText, rounds:200},
 }

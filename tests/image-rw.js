@@ -4,7 +4,7 @@ export default async function imageReadWrite({lib, createCanvas, loadImage, getB
   const size = 512,
         canvas = createCanvas(size, size),
         ctx = canvas.getContext('2d'),
-        img = await loadImage(`${import.meta.dirname}/assets/format.png`, canvas),
+        img = await loadImage(`${import.meta.dirname}/assets/blend-bg.png`, canvas),
         pat = ctx.createPattern(img, "repeat"),
         rng = seed(process.env.SEED || 123),
         coord = (max=size) => rng.intBetween(1, max-1)
