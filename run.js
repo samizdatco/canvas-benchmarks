@@ -57,7 +57,9 @@ async function testLibrary(libID, testID){
   if (typeof snapshot=='string' && snapshot.startsWith(dataPrefix)){
     snapshot = Buffer.from(snapshot.slice(dataPrefix.length), "base64")
   }
-  writeFileSync(`img/snapshots/${testID}_${libID}.${ext}`, snapshot)
+  if (snapshot instanceof Buffer){
+    writeFileSync(`img/snapshots/${testID}_${libID}.${ext}`, snapshot)
+  }
 
   console.log(toJSON({ test:testID, lib:lib.name, rounds, ms }))
 }
