@@ -59,7 +59,7 @@ async function toTTY(results){
   }
 }
 
-function pngBar(n, lib, test){
+function svgBar(n, lib, test){
   let width = 250,
       height = 16,
       max = 15,
@@ -129,12 +129,20 @@ export function toMarkdown({timestamp, info, benchmarks}){
           ext = (id=='to-svg') ? 'svg' : (id=='to-pdf') ? 'pdf' : 'png',
           path = `img/snapshots/${id}_${run.lib}.${ext}`,
           link = existsSync(path) ? `[👁️](/${path})` : '\u2003\u2003',
-          na = mdCode('\u00a0—————\u00a0')
+          na = mdCode('\u00a0—————\u00a0'),
+          spacer = '\u00a0\u00a0\u00a0'
 
       if (test=='cold-start') name = name.replace(/ \(.*$/,'') // don't list (sync) and (async) redundantly
 
-      let row = unsupported ?  [name, na, na+'\u00a0\u00a0\u00a0'+mdItalic("not supported")]
-              : [`${mdItalic(name)} ${link}`, mdCode(elapsed(ms/rounds)), `${mdCode(elapsed(ms))} ${pngBar(ms/1000, run.lib, id)}`]
+      let row = unsupported ? [
+                name,
+                na,
+                na + spacer + mdItalic("not supported")
+              ] : [
+                `${mdItalic(name)} ${link}`,
+                `${mdCode(elapsed(ms/rounds))}`,
+                `${mdCode(elapsed(ms))} ${svgBar(ms/1000, run.lib, id)}`
+              ]
       rows.push(row)
     }
 
