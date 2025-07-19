@@ -33,10 +33,10 @@ export const tests = {
   "path2d": {label:"Complex shapes", test:drawPaths, rounds:200, omit:["wasm"]},
   "beziers": {label:"Bezier curves", test:drawBeziers, rounds:20},
   "from-svg": {label:"SVG to PNG", test:drawSVG, rounds:100, omit:["wasm"]},
-  "to-svg": {label:"Create SVG", test:drawToSVG, rounds:200, omit:["wasm"],
+  "to-svg": {label:"SVG to SVG", test:drawToSVG, rounds:200, omit:["wasm"],
     note: "`canvas` & `napi-rs` convert the input SVG to a bitmap rather than exporting it as a vector"
   },
-  "to-pdf": {label:"Create PDF", test:drawToPDF, rounds:200, omit:["wasm", "napi"],
+  "to-pdf": {label:"SVG to PDF", test:drawToPDF, rounds:200, omit:["wasm", "napi"],
     note: "`canvas` converts the input SVG to a bitmap rather than exporting it as a vector"
   },
   "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:50},
