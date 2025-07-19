@@ -2,6 +2,7 @@ import seed from 'random-seed'
 
 export default async function imageReadWrite({lib, createCanvas, loadImage, getBitmap}) {
   const size = 512,
+        rounds = 1000,
         canvas = createCanvas(size, size),
         ctx = canvas.getContext('2d'),
         img = await loadImage(`${import.meta.dirname}/assets/blend-bg.png`, canvas),
@@ -15,7 +16,7 @@ export default async function imageReadWrite({lib, createCanvas, loadImage, getB
 
   ctx.fillStyle = pat
   ctx.fillRect(0, 0, size, size)
-  for (let i=0; i<1000; i++){
+  for (let i=0; i<rounds; i++){
     let [x,y] = [coord(size), coord(size)]
     let [w,h] = [coord(size-x), coord(size-y)]
     let img = ctx.getImageData(x, y, w, h)
