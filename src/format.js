@@ -63,11 +63,11 @@ function toTTY(results){
   }
 }
 
-function svgBar(n, lib, test){
+function svgBar(n, maxTime, lib, test){
   let width = 250,
       height = 16,
-      max = 15,
       pad = 10,
+      max = Math.ceil(maxTime/1000),
       svg = `${test}_${lib}.svg`
 
   let canvas = new Canvas(width+pad, height),
@@ -75,8 +75,8 @@ function svgBar(n, lib, test){
 
   ctx.beginPath()
   for (let mark=0; mark<n; mark++){
-    let x = pad + Math.floor(mark * width/max)
-    let w = pad + Math.floor((mark+1) * width/max) - x - .5
+    let x = pad + (mark * width/max)
+    let w = pad + ((mark+1) * width/max) - x - .5
     ctx.rect(x, 0, w, height)
   }
   ctx.clip()
@@ -119,6 +119,7 @@ export function mdHeader(id, note){
 export function toMarkdown({timestamp, info, benchmarks}){
   let output = mdFrontmatter(info, timestamp)
 
+  let maxTime = benchmarks.reduce((acc, {ms}) => Math.max(ms || 0, acc), 0)
   for (let [id, {rounds, note}] of Object.entries(tests)){
 
     let rows = [
@@ -143,7 +144,7 @@ export function toMarkdown({timestamp, info, benchmarks}){
               ] : [
                 `${mdItalic(name)} ${link}`,
                 `${mdCode(elapsed(ms/rounds))}`,
-                `${mdCode(elapsed(ms))} ${svgBar(ms/1000, run.lib, id)}`
+                `${mdCode(elapsed(ms))} ${svgBar(ms/1000, maxTime, run.lib, id)}`
               ]
       rows.push(row)
     }
