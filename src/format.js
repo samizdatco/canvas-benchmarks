@@ -68,7 +68,7 @@ function svgBar(n, lib, test){
       height = 16,
       max = 15,
       pad = 10,
-      path = `${BARS_DIR}/${test}_${lib}.svg`
+      svg = `${test}_${lib}.svg`
 
   let canvas = new Canvas(width+pad, height),
       ctx = canvas.getContext("2d")
@@ -84,8 +84,8 @@ function svgBar(n, lib, test){
   ctx.fillRect(pad, 4, n/max * width, height)
 
   mkdir(BARS_DIR)
-  canvas.saveAsSync(path)
-  return `<img src="${path}" width="${width}" height="${height}">`
+  canvas.saveAsSync(`${BARS_DIR}/${svg}`)
+  return `<img src="bars/${svg}" width="${width}" height="${height}">`
 }
 
 const mdCode = s => `\`${s}\``
@@ -95,24 +95,18 @@ const mdBold = s => `**${s}**`
 export function mdFrontmatter(info, timestamp){
   return [
     `## Canvas Benchmarks (${new Date(timestamp).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"})})`,
-    `\n<details><summary>\n`,
-    `### System Details`,
-    `\n</summary>\n`,
-    `#### Hardware & Software`,
+    `#### System Details`,
     `- **System**: ${info.sys}`,
     `- **CPU**: ${info.cpu}`,
     `- **Memory**: ${info.mem}`,
     `- **OS**: ${info.os}`,
     `- **Node**: ${info.node}`,
     ``,
-    `#### Library Versions`
+    `#### Libraries Tested`
   ].concat(
-    Object.entries(info.libs).map(([lib, v]) => `- ${mdCode(lib)}: v${v}`)
+    Object.entries(info.libs).map(([lib, v]) => `- [${mdCode(lib)}](https://www.npmjs.com/package/${lib}): v${v}`)
   ).concat([
     '> Note: Skia Canvas is tested running in two modes: `serial` and `async`. When running serially, each rendering operation is `await`ed before continuing to the next test iteration. When running asynchronously, all the test iterations are begun at once and are executed in parallel within a `Promise.all` block, making use of the library’s multi-threading.',
-
-
-    `\n</details>`
   ])
 }
 
@@ -135,8 +129,8 @@ export function toMarkdown({timestamp, info, benchmarks}){
       let {name} = libs[run.lib],
           {test, ms, unsupported} = run,
           ext = (id=='to-svg') ? 'svg' : (id=='to-pdf') ? 'pdf' : 'png',
-          path = `${SNAPSHOTS_DIR}/${id}_${run.lib}.${ext}`,
-          link = existsSync(path) ? `[👁️](/${path})` : '\u2003\u2003',
+          image = `${id}_${run.lib}.${ext}`,
+          link = existsSync(`${SNAPSHOTS_DIR}/${image}`) ? `[👁️](snapshots/${image})` : '\u2003\u2003',
           na = mdCode('\u00a0—————\u00a0'),
           spacer = '\u00a0\u00a0\u00a0'
 
