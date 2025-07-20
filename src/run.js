@@ -5,7 +5,7 @@ import {promisify} from 'util'
 import child_process from 'child_process'
 
 import {printHeader, printResults, toMarkdown} from './format.js'
-import {tests, libs, initialize, sysInfo} from './config.js'
+import {tests, libs, initialize, sysInfo, mkdir, OUTPUT_DIR} from './config.js'
 
 const exec = promisify(child_process.exec);
 const WARMUP = 20 // number of times to run a test before starting the timer
@@ -58,7 +58,8 @@ async function testLibrary(libID, testID){
     snapshot = Buffer.from(snapshot.slice(dataPrefix.length), "base64")
   }
   if (snapshot instanceof Buffer){
-    writeFileSync(`img/snapshots/${testID}_${libID}.${ext}`, snapshot)
+    mkdir(OUTPUT_DIR+'/snapshots')
+    writeFileSync(`${OUTPUT_DIR}/snapshots/${testID}_${libID}.${ext}`, snapshot)
   }
 
   console.log(toJSON({ test:testID, lib:lib.name, rounds, ms }))
@@ -116,8 +117,11 @@ async function main(){
         info = await sysInfo(),
         timestamp = new Date().toISOString(),
         results = {timestamp, info, benchmarks}
-    writeFileSync("results.json", toJSON(results))
-    writeFileSync("results.md", toMarkdown(results))
+
+    mkdir(OUTPUT_DIR)
+    writeFileSync(`${OUTPUT_DIR}/data.json`, toJSON(results))
+    writeFileSync(`${OUTPUT_DIR}/index.md`, toMarkdown(results))
+    console.log('\nWrote results to:', OUTPUT_DIR)
   }
 }
 

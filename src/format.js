@@ -1,9 +1,13 @@
 import chalk from 'chalk'
+import path from 'path'
 import {markdownTable} from 'markdown-table'
-import {readFileSync, existsSync} from 'fs'
+import {readFileSync, writeFileSync, existsSync} from 'fs'
 import {fileURLToPath} from 'url'
-import {libs, tests} from "./config.js"
+import {libs, tests, mkdir, OUTPUT_DIR} from "./config.js"
 import {Canvas} from 'skia-canvas'
+
+let BARS_DIR = OUTPUT_DIR + '/bars'
+let SNAPSHOTS_DIR = OUTPUT_DIR + '/snapshots'
 
 const palette = {
   green:"#59a14f",
@@ -48,7 +52,7 @@ export function printResults(name, rounds, {ms, unsupported}, color){
     )
   }
 }
-async function toTTY(results){
+function toTTY(results){
   for (let [id, {rounds}] of Object.entries(tests)){
     printHeader(id)
     let runs = results.benchmarks.filter(r => r.test==id)
@@ -64,7 +68,7 @@ function svgBar(n, lib, test){
       height = 16,
       max = 15,
       pad = 10,
-      path = `img/bars/${test}_${lib}.svg`
+      path = `${BARS_DIR}/${test}_${lib}.svg`
 
   let canvas = new Canvas(width+pad, height),
       ctx = canvas.getContext("2d")
@@ -79,6 +83,7 @@ function svgBar(n, lib, test){
   ctx.fillStyle = palette[libs[lib].color]
   ctx.fillRect(pad, 4, n/max * width, height)
 
+  mkdir(BARS_DIR)
   canvas.saveAsSync(path)
   return `<img src="${path}" width="${width}" height="${height}">`
 }
@@ -89,7 +94,7 @@ const mdBold = s => `**${s}**`
 
 export function mdFrontmatter(info, timestamp){
   return [
-    `## Canvas Benchmarks (${new Date(timestamp).toDateString()})`,
+    `## Canvas Benchmarks (${new Date(timestamp).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"})})`,
     `\n<details><summary>\n`,
     `### System Details`,
     `\n</summary>\n`,
@@ -104,6 +109,9 @@ export function mdFrontmatter(info, timestamp){
   ].concat(
     Object.entries(info.libs).map(([lib, v]) => `- ${mdCode(lib)}: v${v}`)
   ).concat([
+    '> Note: Skia Canvas is tested running in two modes: `serial` and `async`. When running serially, each rendering operation is `await`ed before continuing to the next test iteration. When running asynchronously, all the test iterations are begun at once and are executed in parallel within a `Promise.all` block, making use of the library’s multi-threading.',
+
+
     `\n</details>`
   ])
 }
@@ -127,7 +135,7 @@ export function toMarkdown({timestamp, info, benchmarks}){
       let {name} = libs[run.lib],
           {test, ms, unsupported} = run,
           ext = (id=='to-svg') ? 'svg' : (id=='to-pdf') ? 'pdf' : 'png',
-          path = `img/snapshots/${id}_${run.lib}.${ext}`,
+          path = `${SNAPSHOTS_DIR}/${id}_${run.lib}.${ext}`,
           link = existsSync(path) ? `[👁️](/${path})` : '\u2003\u2003',
           na = mdCode('\u00a0—————\u00a0'),
           spacer = '\u00a0\u00a0\u00a0'
@@ -153,7 +161,21 @@ export function toMarkdown({timestamp, info, benchmarks}){
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  let results = JSON.parse(readFileSync('results.json'))
-  // toTTY(results)
-  console.log(toMarkdown(results))
+  if (process.argv.length < 3){
+    console.log('USAGE: node src/format.js results/<benchmark-dir>/data.json')
+    process.exit(1)
+  }
+
+  // read a data.json file and update its index.md + bars/*.svg
+  let dataPath = process.argv[2],
+      data = JSON.parse(readFileSync(dataPath)),
+      mdPath = path.dirname(dataPath) + '/index.md'
+  BARS_DIR = path.dirname(dataPath) + '/bars'
+  SNAPSHOTS_DIR = path.dirname(dataPath) + '/snapshots'
+
+  toTTY(data) // log the summary to console
+
+  let md = toMarkdown(data)
+  writeFileSync(mdPath, md)
+  console.log('\nFormatted results in:', mdPath)
 }

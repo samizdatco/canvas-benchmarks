@@ -1,23 +1,32 @@
 import {fileURLToPath} from "url";
-import {readFileSync} from 'fs'
+import {readFileSync, mkdirSync as fsMkdir} from 'fs'
 import child_process from 'child_process'
 import {promisify} from 'util'
 
 const exec = promisify(child_process.exec);
 
-import drawBeziers from './tests/beziers.js'
-import drawSVG from './tests/from-svg.js'
-import drawGradients from './tests/gradients.js'
-import drawHouse from './tests/house.js'
-import drawImageScale from './tests/image-blit.js'
-import drawImageRW from './tests/image-rw.js'
-import drawPaths from './tests/path2d.js'
-import drawText from './tests/text.js'
-import drawToSVG from './tests/to-svg.js'
-import drawToPDF from './tests/to-pdf.js'
+import drawBeziers from '../tests/beziers.js'
+import drawSVG from '../tests/from-svg.js'
+import drawGradients from '../tests/gradients.js'
+import drawHouse from '../tests/house.js'
+import drawImageScale from '../tests/image-blit.js'
+import drawImageRW from '../tests/image-rw.js'
+import drawPaths from '../tests/path2d.js'
+import drawText from '../tests/text.js'
+import drawToSVG from '../tests/to-svg.js'
+import drawToPDF from '../tests/to-pdf.js'
+
+export const OUTPUT_DIR = `results/${process.platform}-${process.arch}/${
+  new Date().toISOString().replace(/T.*$/, '')
+}`
+export function mkdir(pth){
+  try{
+    fsMkdir(pth, {recursive:true})
+  }catch(e){}
+}
 
 // const SKIA_CANVAS = 'skia-canvas'
-const SKIA_CANVAS = '../../skia-canvas/lib/index.mjs'
+const SKIA_CANVAS = '../../../skia-canvas/lib/index.mjs'
 
 export const libs = {
   "wasm": {name:'canvaskit-wasm', color:"green"},
@@ -65,7 +74,7 @@ export async function initialize(libName){
     }else if (libName=='wasm'){
       let {default:init} = await import('canvaskit-wasm'),
           CanvasKit = await init({
-              locateFile: (file) => `${import.meta.dirname}/node_modules/canvaskit-wasm/bin/${file}`,
+              locateFile: (file) => `${import.meta.dirname}/../node_modules/canvaskit-wasm/bin/${file}`,
           }),
           createCanvas = (w, h) => CanvasKit.MakeCanvas(w, h),
           loadImage = (path, canvas) => {
@@ -118,14 +127,9 @@ export async function sysInfo(){
     libs: Object.fromEntries(included.map(lib => [lib, deps[lib].version])),
   }
 
-
   return info
 }
 
-async function main(){
-  console.log(await sysInfo())
-}
-
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
+  sysInfo().then(console.log)
 }
