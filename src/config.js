@@ -19,11 +19,6 @@ import drawToPDF from '../tests/to-pdf.js'
 export const OUTPUT_DIR = `results/${process.platform}-${process.arch}/${
   new Date().toISOString().replace(/T.*$/, '')
 }`
-export function mkdir(pth){
-  try{
-    fsMkdir(pth, {recursive:true})
-  }catch(e){}
-}
 
 // const SKIA_CANVAS = 'skia-canvas'
 const SKIA_CANVAS = '../../../skia-canvas/lib/index.mjs'
@@ -95,6 +90,11 @@ export async function initialize(libName){
             getPdf = canvas => canvas.toBuffer("pdf")
         return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf, isAsync}
     }
+}
+
+export function mkdir(pth){
+  try{ fsMkdir(pth, {recursive:true}) }
+  catch(e){}
 }
 
 function formatBytes(b){
