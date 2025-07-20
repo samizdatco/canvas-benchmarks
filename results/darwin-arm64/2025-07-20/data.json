@@ -1,0 +1,336 @@
+{
+  "timestamp": "2025-07-20T20:42:21.691Z",
+  "info": {
+    "sys": "Mac Studio (2025) / Apple Inc. Mac16,9",
+    "cpu": "Apple M4 Max (2.4 GHz, 16 cores)",
+    "mem": "64.00 GiB total (11.52 GiB free)",
+    "os": "macOS 15.4.1 (Sequoia)",
+    "node": "20.18.0",
+    "libs": {
+      "canvas": "3.1.2",
+      "@napi-rs/canvas": "0.1.73",
+      "canvaskit-wasm": "0.40.0",
+      "skia-canvas": "2.0.2"
+    }
+  },
+  "benchmarks": [
+    {
+      "lib": "wasm",
+      "test": "cold-start",
+      "rounds": 50,
+      "ms": 960.607083
+    },
+    {
+      "lib": "canvas",
+      "test": "cold-start",
+      "rounds": 50,
+      "ms": 9007.041206000002
+    },
+    {
+      "lib": "napi",
+      "test": "cold-start",
+      "rounds": 50,
+      "ms": 3852.7859159999994
+    },
+    {
+      "lib": "skia-sync",
+      "test": "cold-start",
+      "rounds": 50,
+      "ms": 550.103417
+    },
+    {
+      "lib": "wasm",
+      "test": "house",
+      "rounds": 200,
+      "ms": 3935.1107500000003
+    },
+    {
+      "lib": "canvas",
+      "test": "house",
+      "rounds": 200,
+      "ms": 2809.194542
+    },
+    {
+      "lib": "napi",
+      "test": "house",
+      "rounds": 200,
+      "ms": 2464.945666
+    },
+    {
+      "lib": "skia-sync",
+      "test": "house",
+      "rounds": 200,
+      "ms": 2806.447542
+    },
+    {
+      "lib": "skia-async",
+      "test": "house",
+      "rounds": 200,
+      "ms": 234.480125
+    },
+    {
+      "lib": "wasm",
+      "test": "path2d",
+      "unsupported": true
+    },
+    {
+      "lib": "canvas",
+      "test": "path2d",
+      "rounds": 200,
+      "ms": 12937.091208
+    },
+    {
+      "lib": "napi",
+      "test": "path2d",
+      "rounds": 200,
+      "ms": 8315.539416
+    },
+    {
+      "lib": "skia-sync",
+      "test": "path2d",
+      "rounds": 200,
+      "ms": 6544.293
+    },
+    {
+      "lib": "skia-async",
+      "test": "path2d",
+      "rounds": 200,
+      "ms": 566.185292
+    },
+    {
+      "lib": "wasm",
+      "test": "beziers",
+      "rounds": 20,
+      "ms": 14798.887334
+    },
+    {
+      "lib": "canvas",
+      "test": "beziers",
+      "rounds": 20,
+      "ms": 7989.699916
+    },
+    {
+      "lib": "napi",
+      "test": "beziers",
+      "rounds": 20,
+      "ms": 3822.2069579999998
+    },
+    {
+      "lib": "skia-sync",
+      "test": "beziers",
+      "rounds": 20,
+      "ms": 2210.6413329999996
+    },
+    {
+      "lib": "skia-async",
+      "test": "beziers",
+      "rounds": 20,
+      "ms": 295.8084590000003
+    },
+    {
+      "lib": "wasm",
+      "test": "from-svg",
+      "unsupported": true
+    },
+    {
+      "lib": "canvas",
+      "test": "from-svg",
+      "rounds": 100,
+      "ms": 10980.415917
+    },
+    {
+      "lib": "napi",
+      "test": "from-svg",
+      "rounds": 100,
+      "ms": 8271.189124999999
+    },
+    {
+      "lib": "skia-sync",
+      "test": "from-svg",
+      "rounds": 100,
+      "ms": 4781.541166
+    },
+    {
+      "lib": "skia-async",
+      "test": "from-svg",
+      "rounds": 100,
+      "ms": 488.49908400000004
+    },
+    {
+      "lib": "wasm",
+      "test": "to-svg",
+      "unsupported": true
+    },
+    {
+      "lib": "canvas",
+      "test": "to-svg",
+      "rounds": 200,
+      "ms": 5593.184792
+    },
+    {
+      "lib": "napi",
+      "test": "to-svg",
+      "rounds": 200,
+      "ms": 5960.0349590000005
+    },
+    {
+      "lib": "skia-sync",
+      "test": "to-svg",
+      "rounds": 200,
+      "ms": 610.052417
+    },
+    {
+      "lib": "skia-async",
+      "test": "to-svg",
+      "rounds": 200,
+      "ms": 547.590416
+    },
+    {
+      "lib": "wasm",
+      "test": "to-pdf",
+      "unsupported": true
+    },
+    {
+      "lib": "canvas",
+      "test": "to-pdf",
+      "rounds": 200,
+      "ms": 4519.872375
+    },
+    {
+      "lib": "napi",
+      "test": "to-pdf",
+      "unsupported": true
+    },
+    {
+      "lib": "skia-sync",
+      "test": "to-pdf",
+      "rounds": 200,
+      "ms": 868.5989169999999
+    },
+    {
+      "lib": "skia-async",
+      "test": "to-pdf",
+      "rounds": 200,
+      "ms": 205.51787500000003
+    },
+    {
+      "lib": "wasm",
+      "test": "image-blit",
+      "rounds": 50,
+      "ms": 12896.824165999999
+    },
+    {
+      "lib": "canvas",
+      "test": "image-blit",
+      "rounds": 50,
+      "ms": 12321.765916
+    },
+    {
+      "lib": "napi",
+      "test": "image-blit",
+      "rounds": 50,
+      "ms": 4906.383374999999
+    },
+    {
+      "lib": "skia-sync",
+      "test": "image-blit",
+      "rounds": 50,
+      "ms": 4321.581167
+    },
+    {
+      "lib": "skia-async",
+      "test": "image-blit",
+      "rounds": 50,
+      "ms": 446.9051669999999
+    },
+    {
+      "lib": "wasm",
+      "test": "image-rw",
+      "unsupported": true
+    },
+    {
+      "lib": "canvas",
+      "test": "image-rw",
+      "rounds": 150,
+      "ms": 8866.357834
+    },
+    {
+      "lib": "napi",
+      "test": "image-rw",
+      "rounds": 150,
+      "ms": 5410.978792
+    },
+    {
+      "lib": "skia-sync",
+      "test": "image-rw",
+      "rounds": 150,
+      "ms": 8075.577209
+    },
+    {
+      "lib": "skia-async",
+      "test": "image-rw",
+      "rounds": 150,
+      "ms": 6588.565208
+    },
+    {
+      "lib": "wasm",
+      "test": "gradients",
+      "rounds": 150,
+      "ms": 12794.263667000001
+    },
+    {
+      "lib": "canvas",
+      "test": "gradients",
+      "rounds": 150,
+      "ms": 6491.743167
+    },
+    {
+      "lib": "napi",
+      "test": "gradients",
+      "rounds": 150,
+      "ms": 5814.138333999999
+    },
+    {
+      "lib": "skia-sync",
+      "test": "gradients",
+      "rounds": 150,
+      "ms": 6376.918209
+    },
+    {
+      "lib": "skia-async",
+      "test": "gradients",
+      "rounds": 150,
+      "ms": 623.362542
+    },
+    {
+      "lib": "wasm",
+      "test": "text",
+      "rounds": 200,
+      "ms": 4045.2954999999997
+    },
+    {
+      "lib": "canvas",
+      "test": "text",
+      "rounds": 200,
+      "ms": 4134.325792000001
+    },
+    {
+      "lib": "napi",
+      "test": "text",
+      "rounds": 200,
+      "ms": 3261.591042
+    },
+    {
+      "lib": "skia-sync",
+      "test": "text",
+      "rounds": 200,
+      "ms": 3674.0729579999997
+    },
+    {
+      "lib": "skia-async",
+      "test": "text",
+      "rounds": 200,
+      "ms": 351.329417
+    }
+  ]
+}

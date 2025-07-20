@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="260" height="16">
+	<clipPath id="cl_18">
+		<rect x="10" width="16.166666" height="16"/>
+	</clipPath>
+	<g clip-path="url(#cl_18)">
+		<path fill="#76B7B2" d="M10 4L18.141651 4L18.141651 20L10 20L10 4Z"/>
+	</g>
+</svg>
