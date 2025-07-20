@@ -20,8 +20,8 @@ export const OUTPUT_DIR = `results/${process.platform}-${process.arch}/${
   new Date().toISOString().replace(/T.*$/, '')
 }`
 
-// const SKIA_CANVAS = 'skia-canvas'
-const SKIA_CANVAS = '../../../skia-canvas/lib/index.mjs'
+const SKIA_CANVAS = 'skia-canvas'
+// const SKIA_CANVAS = '../../../skia-canvas/lib/index.mjs'
 
 export const libs = {
   "wasm": {name:'canvaskit-wasm', color:"green"},

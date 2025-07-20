@@ -16,7 +16,7 @@
     "chalk": "^5.4.1",
     "markdown-table": "^3.0.4",
     "random-seed": "^0.3.0",
-    "skia-canvas": "^2.0.2",
+    "skia-canvas": "github:samizdatco/skia-canvas",
     "systeminformation": "^5.27.7"
   }
 }
