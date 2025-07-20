@@ -3,9 +3,9 @@
   "description": "Benchmark various Canvas libraries for Node.js",
   "author": "Christian Swinehart",
   "version": "1.0.0",
-  "main": "run.js",
+  "main": "./src/run.js",
   "scripts": {
-    "test": "node run.js"
+    "test": "node ./src/run.js"
   },
   "license": "MIT",
   "type": "module",
