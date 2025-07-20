@@ -83,7 +83,7 @@ export async function initialize(libName){
           },
           getBitmap = canvas => canvas.toDataURL("image/png")
       return {lib:libName, createCanvas, loadImage, getBitmap}
-    }else if (libName.startsWith('skia-')){
+    }else if (['skia-sync', 'skia-async'].includes(libName)){
         let mod = await import (SKIA_CANVAS),
             {Canvas, loadImage} = mod,
             isAsync = libName.endsWith('-async'),
