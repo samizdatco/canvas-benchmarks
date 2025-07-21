@@ -6,7 +6,7 @@ import {fileURLToPath} from 'url'
 import {libs, tests, mkdir, OUTPUT_DIR} from "./config.js"
 import {Canvas} from 'skia-canvas'
 
-let BARS_DIR = OUTPUT_DIR + '/bars'
+let BARS_FILE = OUTPUT_DIR + '/bars.svg'
 let SNAPSHOTS_DIR = OUTPUT_DIR + '/snapshots'
 
 const palette = {
@@ -52,6 +52,7 @@ export function printResults(name, rounds, {ms, unsupported}, color){
     )
   }
 }
+
 function toTTY(results){
   for (let [id, {rounds}] of Object.entries(tests)){
     printHeader(id)
@@ -63,29 +64,58 @@ function toTTY(results){
   }
 }
 
-function svgBar(n, maxTime, lib, test){
-  let width = 250,
-      height = 16,
-      pad = 10,
-      max = Math.ceil(maxTime/1000),
-      svg = `${test}_${lib}.svg`
+class SvgBars{
+  width = 250
+  height = 16
+  pad = 10
+  bars = []
 
-  let canvas = new Canvas(width+pad, height),
-      ctx = canvas.getContext("2d")
-
-  ctx.beginPath()
-  for (let mark=0; mark<n; mark++){
-    let x = pad + (mark * width/max)
-    let w = pad + ((mark+1) * width/max) - x - .5
-    ctx.rect(x, 0, w, height)
+  constructor(maxTime){
+    this.max = Math.ceil(maxTime/1000)
   }
-  ctx.clip()
-  ctx.fillStyle = palette[libs[lib].color]
-  ctx.fillRect(pad, 4, n/max * width, height)
 
-  mkdir(BARS_DIR)
-  canvas.saveAsSync(`${BARS_DIR}/${svg}`)
-  return `<img src="bars/${svg}" width="${width}" height="${height}">`
+  addBar(ms, lib, test){
+    let {pad, width, height, max} = this,
+        canvas = new Canvas(width+pad, height),
+        ctx = canvas.getContext("2d"),
+        anchor = `${test}_${lib}`
+
+    ctx.beginPath()
+    for (let mark=0; mark<ms; mark++){
+      let x = pad + (mark * width/max)
+      let w = pad + ((mark+1) * width/max) - x - .5
+      ctx.rect(x, 0, w, height)
+    }
+    ctx.clip()
+    ctx.fillStyle = palette[libs[lib].color]
+    ctx.fillRect(pad, 4, ms/max * width, height)
+
+    let svg = canvas.toBufferSync("svg").toString(),
+        inner = svg.match(/<svg.*?>(.*?)<\/svg>/s)[1].trim()
+    this.bars.push(`<g class="bar" id="${anchor}">\n    ${inner}\n</g>`)
+    return `<img src="bars.svg#${anchor}" width="${width+pad}" height="${height}">`
+  }
+
+  toString(){
+    let {pad, width, height} = this
+    return `<?xml version="1.0" encoding="utf-8" ?>
+      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${width+pad}" height="${height}">
+        <defs>
+          <style>
+            <![CDATA[
+              .bar { display: none; }
+              .bar:target { display: inline; }
+            ]]>
+          </style>
+        </defs>
+        ${this.bars.join('\n')}
+      </svg>`
+  }
+
+  saveAs(filePath){
+    mkdir(path.dirname(filePath))
+    writeFileSync(filePath, this.toString())
+  }
 }
 
 const mdCode = s => `\`${s}\``
@@ -97,8 +127,8 @@ export function mdFrontmatter(info, timestamp){
   let gpuLabel = mdBold(info.gpu.length > 1 ? 'GPUs' : 'GPU')
 
   return [
-    `## Canvas Benchmarks (${new Date(timestamp).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"})})`,
-    `#### System Details`,
+    `## Canvas Benchmarks · ${new Date(timestamp).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"})}`,
+    `#### Configuration`,
     `- **System**: ${info.sys}`,
     `- **CPU**: ${info.cpu}`,
     `- ${gpuLabel}: ${gpuInfo}`,
@@ -122,10 +152,10 @@ export function mdHeader(id, note){
 
 export function toMarkdown({timestamp, info, benchmarks}){
   let output = mdFrontmatter(info, timestamp)
-
   let maxTime = benchmarks.reduce((acc, {ms}) => Math.max(ms || 0, acc), 0)
-  for (let [id, {rounds, note}] of Object.entries(tests)){
+  let bars = new SvgBars(maxTime)
 
+  for (let [id, {rounds, note}] of Object.entries(tests)){
     let rows = [
       ["Library", "Per Run", "Total Time"]
     ]
@@ -148,11 +178,12 @@ export function toMarkdown({timestamp, info, benchmarks}){
               ] : [
                 `${mdItalic(name)} ${link}`,
                 `${mdCode(elapsed(ms/rounds))}`,
-                `${mdCode(elapsed(ms))} ${svgBar(ms/1000, maxTime, run.lib, id)}`
+                `${mdCode(elapsed(ms))} ${bars.addBar(ms/1000, run.lib, id)}`
               ]
       rows.push(row)
     }
 
+    bars.saveAs(BARS_FILE)
     output.push(mdHeader(id, note))
     output.push(markdownTable(rows))
   }
@@ -169,7 +200,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   let dataPath = process.argv[2],
       data = JSON.parse(readFileSync(dataPath)),
       mdPath = path.dirname(dataPath) + '/index.md'
-  BARS_DIR = path.dirname(dataPath) + '/bars'
+  BARS_FILE = path.dirname(dataPath) + '/bars.svg'
   SNAPSHOTS_DIR = path.dirname(dataPath) + '/snapshots'
 
   toTTY(data) // log the summary to console

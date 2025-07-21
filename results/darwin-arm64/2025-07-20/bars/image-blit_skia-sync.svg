@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="260" height="16">
-	<clipPath id="cl_23">
-		<path d="M10 0L26.166666 0L26.166666 16L10 16L10 0ZM26.666666 0L42.833332 0L42.833332 16L26.666666 16L26.666666 0ZM43.333332 0L59.5 0L59.5 16L43.333332 16L43.333332 0ZM60 0L76.166664 0L76.166664 16L60 16L60 0ZM76.666664 0L92.833328 0L92.833328 16L76.666664 16L76.666664 0Z"/>
-	</clipPath>
-	<g clip-path="url(#cl_23)">
-		<path fill="#4E79A7" d="M10 4L82.026352 4L82.026352 20L10 20L10 4Z"/>
-	</g>
-</svg>
