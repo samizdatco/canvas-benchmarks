@@ -30,7 +30,9 @@ export const libs = {
 export const tests = {
   "cold-start": {label:"Startup latency", test:null, rounds:50},
   "house": {label:"Simple house", test:drawHouse, rounds:200},
-  "path2d": {label:"Complex shapes", test:drawPaths, rounds:200, omit:["wasm"]},
+  "path2d": {label:"Complex shapes", test:drawPaths, rounds:200,
+    note:"`canvaskit-wasm` renders the shapes, but positions them incorrectly"
+  },
   "beziers": {label:"Bezier curves", test:drawBeziers, rounds:20},
   "from-svg": {label:"SVG to PNG", test:drawSVG, rounds:100, omit:["wasm"]},
   "to-svg": {label:"SVG to SVG", test:drawToSVG, rounds:200, omit:["wasm"],
