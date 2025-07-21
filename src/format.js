@@ -93,11 +93,15 @@ const mdItalic = s => `*${s}*`
 const mdBold = s => `**${s}**`
 
 export function mdFrontmatter(info, timestamp){
+  let gpuInfo = info.gpu.length > 1 ? '\n  - ' + info.gpu.join('\n  - ') : info.gpu[0]
+  let gpuLabel = mdBold(info.gpu.length > 1 ? 'GPUs' : 'GPU')
+
   return [
     `## Canvas Benchmarks (${new Date(timestamp).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"})})`,
     `#### System Details`,
     `- **System**: ${info.sys}`,
     `- **CPU**: ${info.cpu}`,
+    `- ${gpuLabel}: ${gpuInfo}`,
     `- **Memory**: ${info.mem}`,
     `- **OS**: ${info.os}`,
     `- **Node**: ${info.node}`,

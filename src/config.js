@@ -114,6 +114,7 @@ export async function sysInfo(){
       cpu = await si.cpu(),
       mem = await si.mem(),
       os = await si.osInfo(),
+      gfx = await si.graphics(),
       versions = await si.versions()
 
   if (sys.model=='Mac16,9' && sys.version=='Unknown') sys.version = 'Mac Studio (2025)'
@@ -121,6 +122,7 @@ export async function sysInfo(){
   let info = {
     sys:`${sys.version} / ${sys.manufacturer} ${sys.model}`,
     cpu:`${cpu.manufacturer} ${cpu.brand} (${cpu.speed} GHz, ${cpu.cores} cores)`,
+    gpu:gfx.controllers.map(({bus, model, vendor, cores})=>`${model} / ${vendor} (${bus}, ${cores} cores)`),
     mem:`${formatBytes(mem.total)} total (${formatBytes(mem.free)} free)`,
     os:`${os.distro} ${os.release} ${os.codename ? `(${os.codename})`: ''}`,
     node: versions.node,
