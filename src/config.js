@@ -90,11 +90,6 @@ export async function initialize(libName){
     }
 }
 
-export function mkdir(pth){
-  try{ fsMkdir(pth, {recursive:true}) }
-  catch(e){}
-}
-
 function formatBytes(b){
   if (b < 1024){ return `${b} B` }else{ b /= 1024}
   if (b < 1024){ return `${b} KiB` }else{ b /= 1024}

@@ -3,10 +3,9 @@ import path from 'path'
 import {markdownTable} from 'markdown-table'
 import {readFileSync, writeFileSync, existsSync} from 'fs'
 import {fileURLToPath} from 'url'
-import {libs, tests, mkdir, OUTPUT_DIR} from "./config.js"
+import {libs, tests, OUTPUT_DIR} from "./config.js"
 import {Canvas} from 'skia-canvas'
 
-let BARS_FILE = OUTPUT_DIR + '/bars.svg'
 let SNAPSHOTS_DIR = OUTPUT_DIR + '/snapshots'
 
 const palette = {
@@ -18,7 +17,8 @@ const palette = {
 }
 
 function elapsed(t, pad=7){
-  let s = t < 1000 ? `${Math.round(t)} ms`
+  let s = t < 1 ? '<1 ms'
+        : t < 1000 ? `${Math.round(t)} ms`
         : t < 601000 ? `${(t/1000).toFixed(2)} s`
         : `${Math.floor(t / 60000)}m ${((t % 60000) / 1000).toFixed(2)}s`
   return s.padStart(pad, '\u00a0')
@@ -40,7 +40,7 @@ export function printHeader(id){
   console.log(`\n${label} (${rounds} iterations)`)
 }
 
-export function printResults(name, rounds, {ms, unsupported}, color){
+export function printResult(name, rounds, {ms, unsupported}, color){
   if (unsupported){
     console.log(' ', name.padEnd(20), ' —————— (unsupported)')
   }else{
@@ -55,11 +55,13 @@ export function printResults(name, rounds, {ms, unsupported}, color){
 
 function toTTY(results){
   for (let [id, {rounds}] of Object.entries(tests)){
-    printHeader(id)
     let runs = results.benchmarks.filter(r => r.test==id)
+    if (runs.length==0) continue
+
+    printHeader(id)
     for (const run of runs){
       let {name, color} = libs[run.lib]
-      printResults(name, rounds, run, color)
+      printResult(name, rounds, run, color)
     }
   }
 }
@@ -111,11 +113,6 @@ class SvgBars{
         ${this.bars.join('\n')}
       </svg>`
   }
-
-  saveAs(filePath){
-    mkdir(path.dirname(filePath))
-    writeFileSync(filePath, this.toString())
-  }
 }
 
 const mdCode = s => `\`${s}\``
@@ -150,7 +147,7 @@ export function mdHeader(id, note){
   return `\n### [${label}](/tests/${id}.js) (${rounds} iterations)${nb}`
 }
 
-export function toMarkdown({timestamp, info, benchmarks}){
+export function formatResults({timestamp, info, benchmarks}){
   let output = mdFrontmatter(info, timestamp)
   let maxTime = benchmarks.reduce((acc, {ms}) => Math.max(ms || 0, acc), 0)
   let bars = new SvgBars(maxTime)
@@ -183,11 +180,11 @@ export function toMarkdown({timestamp, info, benchmarks}){
       rows.push(row)
     }
 
-    bars.saveAs(BARS_FILE)
     output.push(mdHeader(id, note))
     output.push(markdownTable(rows))
   }
-  return output.join('\n')
+
+  return [output.join('\n'), bars.toString()]
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -196,16 +193,17 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(1)
   }
 
-  // read a data.json file and update its index.md + bars/*.svg
+  // read a data.json file and update its index.md + bars.svg
   let dataPath = process.argv[2],
       data = JSON.parse(readFileSync(dataPath)),
-      mdPath = path.dirname(dataPath) + '/index.md'
-  BARS_FILE = path.dirname(dataPath) + '/bars.svg'
+      mdPath = path.dirname(dataPath) + '/index.md',
+      svgPath = path.dirname(dataPath) + '/bars.svg'
   SNAPSHOTS_DIR = path.dirname(dataPath) + '/snapshots'
 
   toTTY(data) // log the summary to console
 
-  let md = toMarkdown(data)
+  let [md, bars] = formatResults(data)
   writeFileSync(mdPath, md)
+  writeFileSync(svgPath, bars)
   console.log('\nFormatted results in:', chalk.bold(mdPath))
 }
