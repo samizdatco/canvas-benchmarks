@@ -3,3 +3,6 @@
 .env
 node_modules
 /results
+
+# don't commit lockfile so newest libraries will always be used
+package-lock.json

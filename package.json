@@ -10,9 +10,9 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.73",
-    "canvas": "^3.1.2",
-    "canvaskit-wasm": "^0.40.0",
+    "@napi-rs/canvas": "latest",
+    "canvas": "latest",
+    "canvaskit-wasm": "latest",
     "chalk": "^5.4.1",
     "markdown-table": "^3.0.4",
     "random-seed": "^0.3.0",
