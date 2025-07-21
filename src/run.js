@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import {writeFileSync} from 'fs'
 import {fileURLToPath} from "url";
 import {performance} from 'perf_hooks'
@@ -121,7 +122,7 @@ async function main(){
     mkdir(OUTPUT_DIR)
     writeFileSync(`${OUTPUT_DIR}/data.json`, toJSON(results))
     writeFileSync(`${OUTPUT_DIR}/index.md`, toMarkdown(results))
-    console.log('\nWrote results to:', OUTPUT_DIR)
+    console.log('\nWrote results to:', chalk.bold(OUTPUT_DIR))
   }
 }
 

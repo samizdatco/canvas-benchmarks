@@ -176,5 +176,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 
   let md = toMarkdown(data)
   writeFileSync(mdPath, md)
-  console.log('\nFormatted results in:', mdPath)
+  console.log('\nFormatted results in:', chalk.bold(mdPath))
 }
