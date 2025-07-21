@@ -15,6 +15,6 @@ Running the benchmarks will create a subdirectory of `results` containing:
 
 ### [View Benchmark Results][results]
 
-[results]: /results/darwin-arm64/2025-07-20/index.md
-[data]: /results/darwin-arm64/2025-07-20/data.json
-[snapshots]: /results/darwin-arm64/2025-07-20/snapshots
+[results]: /results/darwin-arm64/2025-07-21/index.md
+[data]: /results/darwin-arm64/2025-07-21/data.json
+[snapshots]: /results/darwin-arm64/2025-07-21/snapshots
