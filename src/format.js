@@ -6,6 +6,10 @@ import {fileURLToPath} from 'url'
 import {libs, tests} from "./config.js"
 import {Canvas} from 'skia-canvas'
 
+const mdCode = s => `\`${s}\``
+const mdItalic = s => `*${s}*`
+const mdBold = s => `**${s}**`
+
 const palette = {
   green:"#59a14f",
   red:"#e15759",
@@ -22,46 +26,68 @@ function elapsed(t, pad=7){
   return s.padStart(pad, '\u00a0')
 }
 
-function ttyBar(n, pad=0){
-  let steps = ' ▏▎▍▌▋▊▉█'
-  let bar = ''
-  while (n > 1){
-    bar += steps[8]
-    n -= 1
-  }
-  bar += steps[Math.floor(n*8)]
-  return bar.padEnd(pad, '\u00a0')
+export function mdFrontmatter(info, date){
+  let gpuInfo = info.gpu.length > 1 ? '\n  - ' + info.gpu.join('\n  - ') : info.gpu[0]
+  let gpuLabel = mdBold(info.gpu.length > 1 ? 'GPUs' : 'GPU')
+
+  return [
+    `## Canvas Benchmarks · ${new Date(date.replace('-','/')).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"})}`,
+    `#### Configuration`,
+    `- **System**: ${info.sys}`,
+    `- **CPU**: ${info.cpu}`,
+    `- ${gpuLabel}: ${gpuInfo}`,
+    `- **Memory**: ${info.mem}`,
+    `- **OS**: ${info.os}`,
+    `- **Node**: ${info.node}`,
+    ``,
+    `#### Libraries Tested`
+  ].concat(
+    Object.entries(info.libs).map(([lib, v]) => `- [${mdCode(lib)}](https://www.npmjs.com/package/${lib}): v${v}`)
+  ).concat([
+    '> Note: Skia Canvas is tested running in two modes: `serial` and `async`. When running serially, each rendering operation is `await`ed before continuing to the next test iteration. When running asynchronously, all the test iterations are begun at once and are executed in parallel within a `Promise.all` block, making use of the library’s multi-threading.',
+  ])
 }
 
-export function printHeader(id){
-  let {label, rounds} = tests[id]
-  console.log(`\n${label} (${rounds} iterations)`)
-}
+export function formatResults({date, info, benchmarks}, outputDir){
+  let output = mdFrontmatter(info, date)
+  let maxTime = benchmarks.reduce((acc, {ms}) => Math.max(ms || 0, acc), 0)
+  let bars = new SvgBars(maxTime)
 
-export function printResult(name, rounds, {ms, unsupported}, color){
-  if (unsupported){
-    console.log(' ', name.padEnd(20), ' —————— (unsupported)')
-  }else{
-    console.log(' ',
-      name.padEnd(20),
-      elapsed(ms),
-      `(avg. ${elapsed(ms/rounds,6)})`,
-      chalk[color](ttyBar(ms/1000))
-    )
-  }
-}
+  for (let [id, {label, rounds, note}] of Object.entries(tests)){
+    let runs = benchmarks.filter(r => r.test==id)
 
-function toTTY(results){
-  for (let [id, {rounds}] of Object.entries(tests)){
-    let runs = results.benchmarks.filter(r => r.test==id)
-    if (runs.length==0) continue
+    let table = [
+      ["Library", "Per Run", "Total Time"]
+    ].concat(runs.map(({lib, test, ms, unsupported}) => {
+      let {name} = libs[lib],
+          ext = (id=='to-svg') ? 'svg' : (id=='to-pdf') ? 'pdf' : 'png',
+          image = `${id}_${lib}.${ext}`,
+          link = existsSync(`${outputDir}/snapshots/${image}`) ? `[👁️](snapshots/${image})` : '\u2003\u2003',
+          na = mdCode('\u00a0—————\u00a0'),
+          spacer = '\u00a0\u00a0\u00a0'
 
-    printHeader(id)
-    for (const run of runs){
-      let {name, color} = libs[run.lib]
-      printResult(name, rounds, run, color)
+      // don't list (sync) and (async) redundantly
+      if (test=='cold-start') name = name.replace(/ \(.*$/,'')
+
+      return unsupported ? [
+        name,
+        na,
+        na + spacer + mdItalic("not supported")
+      ] : [
+        `${mdItalic(name)} ${link}`,
+        `${mdCode(elapsed(ms/rounds))}`,
+        `${mdCode(elapsed(ms))} ${bars.addBar(ms/1000, lib, id)}`
+      ]
+    }))
+
+    if (runs.length){
+      output.push(`\n### [${label}](/tests/${id}.js) (${rounds} iterations)`)
+      if (note) output.push(`> Note: ${note}\n`)
+      output.push(markdownTable(table))
     }
   }
+
+  return [output.join('\n'), bars.toString()]
 }
 
 class SvgBars{
@@ -113,76 +139,46 @@ class SvgBars{
   }
 }
 
-const mdCode = s => `\`${s}\``
-const mdItalic = s => `*${s}*`
-const mdBold = s => `**${s}**`
-
-export function mdFrontmatter(info, date){
-  let gpuInfo = info.gpu.length > 1 ? '\n  - ' + info.gpu.join('\n  - ') : info.gpu[0]
-  let gpuLabel = mdBold(info.gpu.length > 1 ? 'GPUs' : 'GPU')
-
-  return [
-    `## Canvas Benchmarks · ${new Date(date.replace('-','/')).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"})}`,
-    `#### Configuration`,
-    `- **System**: ${info.sys}`,
-    `- **CPU**: ${info.cpu}`,
-    `- ${gpuLabel}: ${gpuInfo}`,
-    `- **Memory**: ${info.mem}`,
-    `- **OS**: ${info.os}`,
-    `- **Node**: ${info.node}`,
-    ``,
-    `#### Libraries Tested`
-  ].concat(
-    Object.entries(info.libs).map(([lib, v]) => `- [${mdCode(lib)}](https://www.npmjs.com/package/${lib}): v${v}`)
-  ).concat([
-    '> Note: Skia Canvas is tested running in two modes: `serial` and `async`. When running serially, each rendering operation is `await`ed before continuing to the next test iteration. When running asynchronously, all the test iterations are begun at once and are executed in parallel within a `Promise.all` block, making use of the library’s multi-threading.',
-  ])
-}
-
-export function mdHeader(id, note){
-  let {label, rounds} = tests[id],
-      nb = (note) ? `\n> Note: ${note}\n` : ''
-  return `\n### [${label}](/tests/${id}.js) (${rounds} iterations)${nb}`
-}
-
-export function formatResults({date, info, benchmarks}, outputDir){
-  let output = mdFrontmatter(info, date)
-  let maxTime = benchmarks.reduce((acc, {ms}) => Math.max(ms || 0, acc), 0)
-  let bars = new SvgBars(maxTime)
-
-  for (let [id, {rounds, note}] of Object.entries(tests)){
-    let rows = [
-      ["Library", "Per Run", "Total Time"]
-    ]
-    let runs = benchmarks.filter(r => r.test==id)
-    for (const run of runs){
-      let {name} = libs[run.lib],
-          {test, ms, unsupported} = run,
-          ext = (id=='to-svg') ? 'svg' : (id=='to-pdf') ? 'pdf' : 'png',
-          image = `${id}_${run.lib}.${ext}`,
-          link = existsSync(`${outputDir}/snapshots/${image}`) ? `[👁️](snapshots/${image})` : '\u2003\u2003',
-          na = mdCode('\u00a0—————\u00a0'),
-          spacer = '\u00a0\u00a0\u00a0'
-
-      if (test=='cold-start') name = name.replace(/ \(.*$/,'') // don't list (sync) and (async) redundantly
-
-      let row = unsupported ? [
-                name,
-                na,
-                na + spacer + mdItalic("not supported")
-              ] : [
-                `${mdItalic(name)} ${link}`,
-                `${mdCode(elapsed(ms/rounds))}`,
-                `${mdCode(elapsed(ms))} ${bars.addBar(ms/1000, run.lib, id)}`
-              ]
-      rows.push(row)
-    }
-
-    output.push(mdHeader(id, note))
-    output.push(markdownTable(rows))
+function sparkline(n, pad=0){
+  let steps = ' ▏▎▍▌▋▊▉█'
+  let bar = ''
+  while (n > 1){
+    bar += steps[8]
+    n -= 1
   }
+  bar += steps[Math.floor(n*8)]
+  return bar.padEnd(pad, '\u00a0')
+}
 
-  return [output.join('\n'), bars.toString()]
+export function printHeader(id){
+  let {label, rounds} = tests[id]
+  console.log(`\n${label} (${rounds} iterations)`)
+}
+
+export function printResult(name, rounds, {ms, unsupported}, color){
+  if (unsupported){
+    console.log(' ', name.padEnd(20), ' —————— (unsupported)')
+  }else{
+    console.log(' ',
+      name.padEnd(20),
+      elapsed(ms),
+      `(avg. ${elapsed(ms/rounds,6)})`,
+      chalk[color](sparkline(ms/1000))
+    )
+  }
+}
+
+function toTTY(results){
+  for (let [id, {rounds}] of Object.entries(tests)){
+    let runs = results.benchmarks.filter(r => r.test==id)
+    if (runs.length==0) continue
+
+    printHeader(id)
+    for (const run of runs){
+      let {name, color} = libs[run.lib]
+      printResult(name, rounds, run, color)
+    }
+  }
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
