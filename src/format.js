@@ -3,10 +3,8 @@ import path from 'path'
 import {markdownTable} from 'markdown-table'
 import {readFileSync, writeFileSync, existsSync} from 'fs'
 import {fileURLToPath} from 'url'
-import {libs, tests, OUTPUT_DIR} from "./config.js"
+import {libs, tests} from "./config.js"
 import {Canvas} from 'skia-canvas'
-
-let SNAPSHOTS_DIR = OUTPUT_DIR + '/snapshots'
 
 const palette = {
   green:"#59a14f",
@@ -119,12 +117,12 @@ const mdCode = s => `\`${s}\``
 const mdItalic = s => `*${s}*`
 const mdBold = s => `**${s}**`
 
-export function mdFrontmatter(info, timestamp){
+export function mdFrontmatter(info, date){
   let gpuInfo = info.gpu.length > 1 ? '\n  - ' + info.gpu.join('\n  - ') : info.gpu[0]
   let gpuLabel = mdBold(info.gpu.length > 1 ? 'GPUs' : 'GPU')
 
   return [
-    `## Canvas Benchmarks · ${new Date(timestamp).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"})}`,
+    `## Canvas Benchmarks · ${new Date(date.replace('-','/')).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"})}`,
     `#### Configuration`,
     `- **System**: ${info.sys}`,
     `- **CPU**: ${info.cpu}`,
@@ -147,8 +145,8 @@ export function mdHeader(id, note){
   return `\n### [${label}](/tests/${id}.js) (${rounds} iterations)${nb}`
 }
 
-export function formatResults({timestamp, info, benchmarks}){
-  let output = mdFrontmatter(info, timestamp)
+export function formatResults({date, info, benchmarks}, outputDir){
+  let output = mdFrontmatter(info, date)
   let maxTime = benchmarks.reduce((acc, {ms}) => Math.max(ms || 0, acc), 0)
   let bars = new SvgBars(maxTime)
 
@@ -162,7 +160,7 @@ export function formatResults({timestamp, info, benchmarks}){
           {test, ms, unsupported} = run,
           ext = (id=='to-svg') ? 'svg' : (id=='to-pdf') ? 'pdf' : 'png',
           image = `${id}_${run.lib}.${ext}`,
-          link = existsSync(`${SNAPSHOTS_DIR}/${image}`) ? `[👁️](snapshots/${image})` : '\u2003\u2003',
+          link = existsSync(`${outputDir}/snapshots/${image}`) ? `[👁️](snapshots/${image})` : '\u2003\u2003',
           na = mdCode('\u00a0—————\u00a0'),
           spacer = '\u00a0\u00a0\u00a0'
 
@@ -195,15 +193,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 
   // read a data.json file and update its index.md + bars.svg
   let dataPath = process.argv[2],
-      data = JSON.parse(readFileSync(dataPath)),
-      mdPath = path.dirname(dataPath) + '/index.md',
-      svgPath = path.dirname(dataPath) + '/bars.svg'
-  SNAPSHOTS_DIR = path.dirname(dataPath) + '/snapshots'
+      dataDir = path.dirname(dataPath),
+      data = JSON.parse(readFileSync(dataPath))
 
   toTTY(data) // log the summary to console
 
-  let [md, bars] = formatResults(data)
-  writeFileSync(mdPath, md)
-  writeFileSync(svgPath, bars)
-  console.log('\nFormatted results in:', chalk.bold(mdPath))
+  let [md, bars] = formatResults(data, dataDir)
+  writeFileSync(`${dataDir}/index.md`, md)
+  writeFileSync(`${dataDir}/bars.svg`, bars)
+  console.log('\nFormatted results in:', chalk.bold(dataDir))
 }

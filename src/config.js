@@ -16,8 +16,6 @@ import drawText from '../tests/text.js'
 import drawToSVG from '../tests/to-svg.js'
 import drawToPDF from '../tests/to-pdf.js'
 
-export const OUTPUT_DIR = `results/${process.platform}-${process.arch}/${new Date().toLocaleDateString('en-CA')}`
-
 const SKIA_CANVAS = 'skia-canvas'
 // const SKIA_CANVAS = '../../../skia-canvas/lib/index.mjs'
 
