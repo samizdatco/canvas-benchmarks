@@ -6,7 +6,7 @@
     "gpu": [
       "Apple M3 / Apple (Built-In, 10 cores)"
     ],
-    "mem": "24.00 GiB total (2.67 GiB free)",
+    "mem": "24.00 GiB total (724.55 MiB free)",
     "os": "macOS 15.5 (Sequoia)",
     "node": "24.3.0",
     "libs": {
@@ -21,114 +21,115 @@
       "lib": "wasm",
       "test": "cold-start",
       "rounds": 50,
-      "ms": 1213.374088
+      "ms": 1213.4871660000003
     },
     {
       "lib": "canvas",
       "test": "cold-start",
       "rounds": 50,
-      "ms": 4906.048336
+      "ms": 4878.240875
     },
     {
       "lib": "napi",
       "test": "cold-start",
       "rounds": 50,
-      "ms": 3652.472374000001
+      "ms": 3625.790666
     },
     {
       "lib": "skia-sync",
       "test": "cold-start",
       "rounds": 50,
-      "ms": 16.235912000000003
+      "ms": 16.161002999999987
     },
     {
       "lib": "wasm",
       "test": "house",
       "rounds": 200,
-      "ms": 4454.156792
+      "ms": 4454.448375
     },
     {
       "lib": "canvas",
       "test": "house",
       "rounds": 200,
-      "ms": 3282.075916
+      "ms": 3243.2460840000003
     },
     {
       "lib": "napi",
       "test": "house",
       "rounds": 200,
-      "ms": 2886.357625
+      "ms": 2834.153625
     },
     {
       "lib": "skia-sync",
       "test": "house",
       "rounds": 200,
-      "ms": 3197.400916
+      "ms": 3174.8056659999997
     },
     {
       "lib": "skia-async",
       "test": "house",
       "rounds": 200,
-      "ms": 624.861916
+      "ms": 613.2088329999999
     },
     {
       "lib": "wasm",
       "test": "path2d",
-      "unsupported": true
+      "rounds": 200,
+      "ms": 7649.3300420000005
     },
     {
       "lib": "canvas",
       "test": "path2d",
       "rounds": 200,
-      "ms": 15065.761999999999
+      "ms": 14822.638041
     },
     {
       "lib": "napi",
       "test": "path2d",
       "rounds": 200,
-      "ms": 9679.078542
+      "ms": 9664.50725
     },
     {
       "lib": "skia-sync",
       "test": "path2d",
       "rounds": 200,
-      "ms": 7557.325500000001
+      "ms": 7539.784874999999
     },
     {
       "lib": "skia-async",
       "test": "path2d",
       "rounds": 200,
-      "ms": 1379.24325
+      "ms": 1384.120167
     },
     {
       "lib": "wasm",
       "test": "beziers",
       "rounds": 20,
-      "ms": 15587.678333000002
+      "ms": 15803.358875
     },
     {
       "lib": "canvas",
       "test": "beziers",
       "rounds": 20,
-      "ms": 9392.475459
+      "ms": 9288.544375000001
     },
     {
       "lib": "napi",
       "test": "beziers",
       "rounds": 20,
-      "ms": 4511.874208
+      "ms": 4483.848542
     },
     {
       "lib": "skia-sync",
       "test": "beziers",
       "rounds": 20,
-      "ms": 2633.066167
+      "ms": 2627.3032499999995
     },
     {
       "lib": "skia-async",
       "test": "beziers",
       "rounds": 20,
-      "ms": 536.0642090000001
+      "ms": 535.6902089999999
     },
     {
       "lib": "wasm",
@@ -139,25 +140,25 @@
       "lib": "canvas",
       "test": "from-svg",
       "rounds": 100,
-      "ms": 12123.728667
+      "ms": 12123.07
     },
     {
       "lib": "napi",
       "test": "from-svg",
       "rounds": 100,
-      "ms": 9732.111583
+      "ms": 9703.929584000001
     },
     {
       "lib": "skia-sync",
       "test": "from-svg",
       "rounds": 100,
-      "ms": 5899.960459
+      "ms": 5881.517292
     },
     {
       "lib": "skia-async",
       "test": "from-svg",
       "rounds": 100,
-      "ms": 1077.482375
+      "ms": 1072.3645410000001
     },
     {
       "lib": "wasm",
@@ -168,25 +169,25 @@
       "lib": "canvas",
       "test": "to-svg",
       "rounds": 200,
-      "ms": 6610.547
+      "ms": 6596.879375
     },
     {
       "lib": "napi",
       "test": "to-svg",
       "rounds": 200,
-      "ms": 6971.01725
+      "ms": 6964.802708
     },
     {
       "lib": "skia-sync",
       "test": "to-svg",
       "rounds": 200,
-      "ms": 714.9835419999999
+      "ms": 717.629625
     },
     {
       "lib": "skia-async",
       "test": "to-svg",
       "rounds": 200,
-      "ms": 632.7905840000001
+      "ms": 628.833458
     },
     {
       "lib": "wasm",
@@ -197,7 +198,7 @@
       "lib": "canvas",
       "test": "to-pdf",
       "rounds": 200,
-      "ms": 5350.230417000001
+      "ms": 5371.218540999999
     },
     {
       "lib": "napi",
@@ -208,43 +209,43 @@
       "lib": "skia-sync",
       "test": "to-pdf",
       "rounds": 200,
-      "ms": 963.0989590000001
+      "ms": 961.124458
     },
     {
       "lib": "skia-async",
       "test": "to-pdf",
       "rounds": 200,
-      "ms": 314.1415
+      "ms": 312.601625
     },
     {
       "lib": "wasm",
       "test": "image-blit",
       "rounds": 50,
-      "ms": 14098.165833000001
+      "ms": 14414.000708
     },
     {
       "lib": "canvas",
       "test": "image-blit",
       "rounds": 50,
-      "ms": 14198.73
+      "ms": 14116.267625
     },
     {
       "lib": "napi",
       "test": "image-blit",
       "rounds": 50,
-      "ms": 5743.042792
+      "ms": 5739.3005840000005
     },
     {
       "lib": "skia-sync",
       "test": "image-blit",
       "rounds": 50,
-      "ms": 4978.2122500000005
+      "ms": 4973.829541
     },
     {
       "lib": "skia-async",
       "test": "image-blit",
       "rounds": 50,
-      "ms": 950.7103750000001
+      "ms": 952.0338340000003
     },
     {
       "lib": "wasm",
@@ -255,85 +256,85 @@
       "lib": "canvas",
       "test": "image-rw",
       "rounds": 150,
-      "ms": 10104.231583
+      "ms": 10107.790207999999
     },
     {
       "lib": "napi",
       "test": "image-rw",
       "rounds": 150,
-      "ms": 6283.703208999999
+      "ms": 6275.7682079999995
     },
     {
       "lib": "skia-sync",
       "test": "image-rw",
       "rounds": 150,
-      "ms": 9892.452041
+      "ms": 9918.30475
     },
     {
       "lib": "skia-async",
       "test": "image-rw",
       "rounds": 150,
-      "ms": 8384.7695
+      "ms": 8519.065417
     },
     {
       "lib": "wasm",
       "test": "gradients",
       "rounds": 150,
-      "ms": 14956.155458000001
+      "ms": 14689.289917000002
     },
     {
       "lib": "canvas",
       "test": "gradients",
       "rounds": 150,
-      "ms": 7738.303958999999
+      "ms": 7779.289749999999
     },
     {
       "lib": "napi",
       "test": "gradients",
       "rounds": 150,
-      "ms": 6912.465083
+      "ms": 6909.664042
     },
     {
       "lib": "skia-sync",
       "test": "gradients",
       "rounds": 150,
-      "ms": 7537.249958
+      "ms": 7527.896125000001
     },
     {
       "lib": "skia-async",
       "test": "gradients",
       "rounds": 150,
-      "ms": 1337.4322080000002
+      "ms": 1339.8024170000003
     },
     {
       "lib": "wasm",
       "test": "text",
       "rounds": 200,
-      "ms": 4729.432416
+      "ms": 4744.281166
     },
     {
       "lib": "canvas",
       "test": "text",
       "rounds": 200,
-      "ms": 4852.924792
+      "ms": 4858.338417
     },
     {
       "lib": "napi",
       "test": "text",
       "rounds": 200,
-      "ms": 3841.8757910000004
+      "ms": 3832.379833
     },
     {
       "lib": "skia-sync",
       "test": "text",
       "rounds": 200,
-      "ms": 4262.430541000001
+      "ms": 4239.095625
     },
     {
       "lib": "skia-async",
       "test": "text",
       "rounds": 200,
-      "ms": 812.691709
+      "ms": 795.19325
     }
   ]
 }
