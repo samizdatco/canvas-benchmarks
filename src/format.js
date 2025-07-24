@@ -119,7 +119,7 @@ class SvgBars{
     let svg = canvas.toBufferSync("svg").toString(),
         inner = svg.match(/<svg.*?>(.*?)<\/svg>/s)[1].trim()
     this.bars.push(`<g class="bar" id="${anchor}">\n    ${inner}\n</g>`)
-    return `<img src="bars.svg#${anchor}" width="${width+pad}" height="${height}">`
+    return `![ ](bars.svg#${anchor})`
   }
 
   toString(){
