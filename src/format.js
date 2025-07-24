@@ -57,7 +57,7 @@ export function formatResults({date, info, benchmarks}, outputDir){
     let runs = benchmarks.filter(r => r.test==id)
 
     let table = [
-      ["Library", "Per Run", "Total Time"]
+      ["Library", "Per Run", `Total Time (${rounds} iterations)`]
     ].concat(runs.map(({lib, test, ms, unsupported}) => {
       let {name} = libs[lib],
           ext = (id=='to-svg') ? 'svg' : (id=='to-pdf') ? 'pdf' : 'png',
@@ -81,7 +81,7 @@ export function formatResults({date, info, benchmarks}, outputDir){
     }))
 
     if (runs.length){
-      output.push(`\n### [${label}](/tests/${id}.js) (${rounds} iterations)`)
+      output.push(`\n### [${label}](/tests/${id}.js)`)
       if (note) output.push(`> Note: ${note}\n`)
       output.push(markdownTable(table))
     }
