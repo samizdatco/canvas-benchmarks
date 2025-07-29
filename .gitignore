@@ -1,6 +1,7 @@
 .DS_Store
 .vscode
 .env
+.mimeo
 node_modules
 /results
 
