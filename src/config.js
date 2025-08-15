@@ -28,7 +28,7 @@ export const libs = {
 }
 
 export const tests = {
-  "cold-start": {label:"Startup latency", test:null, rounds:50},
+  "cold-start": {label:"Startup latency", test:null, rounds:100},
   "house": {label:"Simple house", test:drawHouse, rounds:200},
   "path2d": {label:"Complex shapes", test:drawPaths, rounds:200,
     note:"`canvaskit-wasm` renders the shapes, but positions them incorrectly"
