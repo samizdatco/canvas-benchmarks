@@ -11,7 +11,7 @@
 - [`canvas`](https://www.npmjs.com/package/canvas): v3.1.2
 - [`@napi-rs/canvas`](https://www.npmjs.com/package/@napi-rs/canvas): v0.1.77
 - [`canvaskit-wasm`](https://www.npmjs.com/package/canvaskit-wasm): v0.40.0
-- [`skia-canvas`](https://www.npmjs.com/package/skia-canvas): v2.0.3-rc35
+- [`skia-canvas`](https://www.npmjs.com/package/skia-canvas): v3.0.0
 > Note: Skia Canvas is tested running in two modes: `serial` and `async`. When running serially, each rendering operation is `await`ed before continuing to the next test iteration. When running asynchronously, all the test iterations are begun at once and are executed in parallel within a `Promise.all` block, making use of the library’s multi-threading.
 
 ### [Startup latency](/tests/cold-start.js)
