@@ -15,6 +15,6 @@ Running the benchmarks will create a directory at `results/<machine-type>/<date>
 
 ### [View Benchmark Results][results]
 
-[results]: /results/darwin-arm64/2025-08-15/index.md
-[data]: /results/darwin-arm64/2025-08-15/data.json
-[snapshots]: /results/darwin-arm64/2025-08-15/snapshots
+[results]: /results/darwin-arm64/2025-09-26/index.md
+[data]: /results/darwin-arm64/2025-09-26/data.json
+[snapshots]: /results/darwin-arm64/2025-09-26/snapshots
