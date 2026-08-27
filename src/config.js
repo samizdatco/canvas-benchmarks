@@ -66,11 +66,11 @@ export const tests = {
   "to-svg": {label:"SVG to SVG", test:drawToSVG, rounds:200, omit:["wasm"],
     note: "`canvas` & `napi-rs` convert the input SVG to a bitmap rather than exporting it as a vector"
   },
-  "to-pdf": {label:"SVG to PDF", test:drawToPDF, rounds:200, omit:["wasm", "napi"],
-    note: "`canvas` converts the input SVG to a bitmap rather than exporting it as a vector"
+  "to-pdf": {label:"SVG to PDF", test:drawToPDF, rounds:200, omit:["wasm"],
+    note: "`canvas` & `napi-rs` convert the input SVG to a bitmap rather than exporting it as a vector"
   },
   "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:50},
-  "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:50, omit:["wasm"]},
+  "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:100, omit:["wasm"]},
   "gradients": {label:"Gradients", test:drawGradients, rounds:150},
   "text": {label:"Basic text", test:drawText, rounds:200},
 }
@@ -81,17 +81,24 @@ export async function initialize(libName){
             {createCanvas, loadImage} = mod,
             createSvgCanvas = (w, h) => createCanvas(w, h, 'svg'),
             createPdfCanvas = (w, h) => createCanvas(w, h, 'pdf'),
-            getBitmap = canvas => canvas.toBuffer("image/png"),
+            getBitmap = canvas => new Promise((res, rej) =>
+              canvas.toBuffer((err, buf) => err ? rej(err) : res(buf), "image/png")
+            ),
             getSvg = canvas => canvas.toBuffer(),
             getPdf = canvas => canvas.toBuffer()
         return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf}
     }else if (libName=='napi'){
         let mod = await import('@napi-rs/canvas'),
-            {createCanvas, loadImage} = mod,
+            {createCanvas, loadImage, PDFDocument} = mod,
             createSvgCanvas = (w, h) => createCanvas(w, h, 1), // 1: outline fonts
-            getBitmap = canvas => canvas.toBuffer("image/png"),
-            getSvg = canvas => canvas.getContent()
-        return {lib:libName, createCanvas, createSvgCanvas, loadImage, getBitmap, getSvg}
+            createPdfCanvas = (w, h) => {
+              let doc = new PDFDocument()
+              return {_pdfDoc: doc, ctx: doc.beginPage(w, h), getContext(){ return this.ctx }}
+            },
+            getBitmap = canvas => canvas.encode("png"),
+            getSvg = canvas => canvas.getContent(),
+            getPdf = canvas => { canvas._pdfDoc.endPage(); return canvas._pdfDoc.close() }
+        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf}
     }else if (libName=='wasm'){
       let {default:init} = await import('canvaskit-wasm'),
           CanvasKit = await init({
