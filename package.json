@@ -5,7 +5,9 @@
   "version": "1.0.0",
   "main": "./src/run.js",
   "scripts": {
-    "test": "node ./src/run.js"
+    "bench": "node ./src/run.js",
+    "bench:local": "MODE=local node ./src/run.js",
+    "bench:prerelease": "MODE=prerelease node ./src/run.js"
   },
   "license": "MIT",
   "type": "module",
@@ -16,7 +18,7 @@
     "chalk": "^5.4.1",
     "markdown-table": "^3.0.4",
     "random-seed": "^0.3.0",
-    "skia-canvas": "github:samizdatco/skia-canvas",
+    "skia-canvas": "latest",
     "systeminformation": "^5.27.7"
   }
 }

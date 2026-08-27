@@ -42,7 +42,11 @@ export function mdFrontmatter(info, date){
     ``,
     `#### Libraries Tested`
   ].concat(
-    Object.entries(info.libs).map(([lib, v]) => `- [${mdCode(lib)}](https://www.npmjs.com/package/${lib}): v${v}`)
+    Object.entries(info.libs).map(([lib, v]) => {
+      let pkg = lib.replace(/\s*\(.+\)$/, '')
+      return /^\d+\.\d+\./.test(v) ? `- [${mdCode(lib)}](https://www.npmjs.com/package/${pkg}): v${v}`
+                                    : `- ${mdCode(lib)}: ${v}`
+    })
   ).concat([
     '> Note: Skia Canvas is tested running in two modes: `serial` and `async`. When running serially, each rendering operation is `await`ed before continuing to the next test iteration. When running asynchronously, all the test iterations are begun at once and are executed in parallel within a `Promise.all` block, making use of the library’s multi-threading.',
   ])
@@ -155,12 +159,14 @@ export function printHeader(id){
   console.log(`\n${label} (${rounds} iterations)`)
 }
 
+const nameWidth = Math.max(...Object.values(libs).map(l => l.name.length))
+
 export function printResult(name, rounds, {ms, unsupported}, color){
   if (unsupported){
-    console.log(' ', name.padEnd(20), ' —————— (unsupported)')
+    console.log(' ', name.padEnd(nameWidth), ' —————— (unsupported)')
   }else{
     console.log(' ',
-      name.padEnd(20),
+      name.padEnd(nameWidth),
       elapsed(ms),
       `(avg. ${elapsed(ms/rounds,6)})`,
       chalk[color](sparkline(ms/1000))

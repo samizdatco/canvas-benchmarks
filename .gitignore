@@ -3,7 +3,7 @@
 .env
 .mimeo
 node_modules
-/results
+/result*
 
 # don't commit lockfile so newest libraries will always be used
 package-lock.json

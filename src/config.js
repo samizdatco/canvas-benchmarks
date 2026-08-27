@@ -1,9 +1,25 @@
-import {fileURLToPath} from "url";
-import {readFileSync, mkdirSync as fsMkdir} from 'fs'
+import {fileURLToPath, pathToFileURL} from "url";
+import {readFileSync, mkdirSync as fsMkdir, existsSync} from 'fs'
 import child_process from 'child_process'
 import {promisify} from 'util'
+import path from 'path'
+import {homedir} from 'os'
 
 const exec = promisify(child_process.exec);
+
+// Benchmark mode, selected by the MODE env var:
+//   release     (default) cross-library comparison; skia-canvas is the npm release
+//   local       the same cross-library comparison, but skia-canvas is the local build
+//   prerelease  skia-canvas only: the npm release vs. the local (prerelease) build
+export const mode = process.env.MODE || 'release'
+if (!['release', 'local', 'prerelease'].includes(mode)){
+  throw new Error(`Unknown MODE '${mode}' (expected: release, local, or prerelease)`)
+}
+
+// find the local build for runs in local/prerelease mode
+export const LOCAL_DIR = process.env.SKIA_DIR || path.join(homedir(), 'projects/skia-canvas')
+export const LOCAL_MODULE = pathToFileURL(path.join(LOCAL_DIR, 'lib/index.mjs')).href
+export const LOCAL_BINARY = path.join(LOCAL_DIR, 'lib/skia.node')
 
 import drawBeziers from '../tests/beziers.js'
 import drawSVG from '../tests/from-svg.js'
@@ -16,15 +32,27 @@ import drawText from '../tests/text.js'
 import drawToSVG from '../tests/to-svg.js'
 import drawToPDF from '../tests/to-pdf.js'
 
-const SKIA_CANVAS = 'skia-canvas'
-// const SKIA_CANVAS = '../../../skia-canvas/lib/index.mjs'
+// label the release rows with whichever version npm actually installed
+const RELEASE = (() => {
+  try{ return 'v' + JSON.parse(readFileSync(new URL('../node_modules/skia-canvas/package.json', import.meta.url))).version }
+  catch(e){ return 'release' }
+})()
 
-export const libs = {
+export const libs = mode === 'prerelease' ? {
+  "release-sync":  {name:`skia-canvas · ${RELEASE} (serial)`, color:"blue",  skia:true, module:'skia-canvas', async:false},
+  "release-async": {name:`skia-canvas · ${RELEASE} (async)`,  color:"cyan",  skia:true, module:'skia-canvas', async:true},
+  "local-sync":    {name:'skia-canvas · local (serial)',   color:"green", skia:true, module:LOCAL_MODULE, async:false},
+  "local-async":   {name:'skia-canvas · local (async)',    color:"red",   skia:true, module:LOCAL_MODULE, async:true},
+} : {
   "wasm": {name:'canvaskit-wasm', color:"green"},
   "canvas": {name:'canvas', color:"red"},
   "napi": {name:'@napi-rs/canvas', color:"yellow"},
-  "skia-sync": {name:'skia-canvas (serial)', color:"blue"},
-  "skia-async": {name:'skia-canvas (async)', color:"cyan"},
+  "skia-sync": mode === 'local'
+    ? {name:'skia-canvas · local (serial)', color:"blue", skia:true, module:LOCAL_MODULE}
+    : {name:'skia-canvas (serial)', color:"blue"},
+  "skia-async": mode === 'local'
+    ? {name:'skia-canvas · local (async)', color:"cyan", skia:true, module:LOCAL_MODULE}
+    : {name:'skia-canvas (async)', color:"cyan"},
 }
 
 export const tests = {
@@ -42,7 +70,7 @@ export const tests = {
     note: "`canvas` converts the input SVG to a bitmap rather than exporting it as a vector"
   },
   "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:50},
-  "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:150, omit:["wasm"]},
+  "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:50, omit:["wasm"]},
   "gradients": {label:"Gradients", test:drawGradients, rounds:150},
   "text": {label:"Basic text", test:drawText, rounds:200},
 }
@@ -76,17 +104,18 @@ export async function initialize(libName){
           },
           getBitmap = canvas => canvas.toDataURL("image/png")
       return {lib:libName, createCanvas, loadImage, getBitmap}
-    }else if (['skia-sync', 'skia-async'].includes(libName)){
-        let mod = await import (SKIA_CANVAS),
+    }else if (libName.startsWith('skia-') || libs[libName]?.skia){
+        let {module='skia-canvas', async} = libs[libName] ?? {},
+            mod = await import(module),
             {Canvas, loadImage} = mod,
-            isAsync = libName.endsWith('-async'),
+            isAsync = async ?? libName.endsWith('-async'),
             createCanvas = (w, h) => new Canvas(w, h),
             createSvgCanvas = createCanvas,
             createPdfCanvas = createCanvas,
             getBitmap = canvas => canvas.toBuffer("png"),
             getSvg = canvas => canvas.toBuffer("svg", {outline:true}),
             getPdf = canvas => canvas.toBuffer("pdf")
-        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf, isAsync}
+        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf, isAsync, isSkia:true}
     }
 }
 
@@ -96,6 +125,17 @@ function formatBytes(b){
   if (b < 1024){ return `${b.toFixed(2)} MiB` }else{ b /= 1024}
   if (b < 1024){ return `${b.toFixed(2)} GiB` }else{ b /= 1024}
   return `${b.toFixed(2)} TiB`
+}
+
+// describe the local build with its jj log entry
+function localVersion(){
+  let tmpl = `change_id.short(8) ++ if(description, " — " ++ '"' ++ description.first_line() ++ '"')`
+  try{
+    return child_process.execFileSync('jj', ['--no-pager', 'log', '-r', '@', '--no-graph', '-T', tmpl],
+                                      {cwd:LOCAL_DIR, encoding:'utf8', stdio:['ignore', 'pipe', 'ignore']}).trim()
+  }catch(e){
+    return 'unknown'
+  }
 }
 
 export async function sysInfo(){
@@ -119,7 +159,11 @@ export async function sysInfo(){
     mem:`${formatBytes(mem.total)} total (${formatBytes(mem.free)} free)`,
     os:`${os.distro} ${os.release} ${os.codename ? `(${os.codename})`: ''}`,
     node: versions.node,
-    libs: Object.fromEntries(included.map(lib => [lib, deps[lib].version])),
+    libs: mode === 'prerelease'
+      ? {'skia-canvas (npm release)': deps['skia-canvas'].version, 'skia-canvas (local build)': localVersion()}
+      : Object.fromEntries(included.map(lib =>
+          [lib, (mode === 'local' && lib=='skia-canvas') ? localVersion() : deps[lib].version]
+        )),
   }
 
   return info

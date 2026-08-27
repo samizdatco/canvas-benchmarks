@@ -1,12 +1,12 @@
 import chalk from 'chalk'
-import {writeFileSync, mkdirSync} from 'fs'
+import {writeFileSync, mkdirSync, existsSync} from 'fs'
 import {fileURLToPath} from "url";
 import {performance} from 'perf_hooks'
 import {promisify} from 'util'
 import child_process from 'child_process'
 
 import {printHeader, printResult, formatResults} from './format.js'
-import {tests, libs, initialize, sysInfo} from './config.js'
+import {tests, libs, initialize, sysInfo, mode, LOCAL_DIR, LOCAL_BINARY} from './config.js'
 
 const exec = promisify(child_process.exec);
 const WARMUP = 20 // number of times to run a test before starting the timer
@@ -85,8 +85,9 @@ async function runTests(testIDs, outputDir=''){
       }else if (test=='cold-start'){
         // cold-start happens across multiple process invocations so handle it separately
         let startUp = async lib => exec(`node ${import.meta.filename} ${test} ${lib}`)
-        if (lib=='skia-sync') name = 'skia-canvas'
-        else if (lib=='skia-async') continue
+        let isSkia = lib.startsWith('skia-') || libs[lib]?.skia
+        if (isSkia && lib.endsWith('-async')) continue
+        if (isSkia) name = name.replace(/\s*\((serial|async)\)\s*$/, '')
 
         // run a few times without timing first
         for (let i=0; i<WARMUP; i++) await startUp(lib)
@@ -114,9 +115,15 @@ async function runTests(testIDs, outputDir=''){
 }
 
 async function runTestsAndReport(){
+  if (mode !== 'release' && !existsSync(LOCAL_BINARY)){
+    console.log(chalk.red(`No local build at ${LOCAL_BINARY}\nRun \`make optimized\` in ${LOCAL_DIR} first.`))
+    process.exit(1)
+  }
+
   let info = await sysInfo(),
       date = new Date().toLocaleDateString('en-CA'),
-      outputDir = `results/${process.platform}-${process.arch}/${date}`
+      resultsDir = {release:'results', local:'results-local', prerelease:'results-prerelease'}[mode],
+      outputDir = `${resultsDir}/${process.platform}-${process.arch}/${date}`
 
   let benchmarks = await runTests(Object.keys(tests), outputDir),
       results = {date, info, benchmarks},
