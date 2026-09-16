@@ -3,8 +3,8 @@ import path from 'path'
 import {markdownTable} from 'markdown-table'
 import {readFileSync, writeFileSync, existsSync} from 'fs'
 import {fileURLToPath} from 'url'
+import {createRequire} from 'module'
 import {libs, tests} from "./config.js"
-import {Canvas} from 'skia-canvas'
 
 const mdCode = s => `\`${s}\``
 const mdItalic = s => `*${s}*`
@@ -101,11 +101,13 @@ class SvgBars{
   bars = []
 
   constructor(maxTime){
+    // import skia-canvas as needed so it doesn't interfere with the cold-start test's accuracy
+    this.Canvas = createRequire(import.meta.url)('skia-canvas').Canvas
     this.max = Math.ceil(maxTime/1000)
   }
 
   addBar(ms, lib, test){
-    let {pad, width, height, max} = this,
+    let {pad, width, height, max, Canvas} = this,
         canvas = new Canvas(width+pad, height),
         ctx = canvas.getContext("2d"),
         anchor = `${test}_${lib}`
