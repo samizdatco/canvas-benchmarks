@@ -31,6 +31,7 @@ import drawPaths from '../tests/path2d.js'
 import drawText from '../tests/text.js'
 import drawToSVG from '../tests/to-svg.js'
 import drawToPDF from '../tests/to-pdf.js'
+import drawFromPDF from '../tests/from-pdf.js'
 
 // label the release rows with whichever version npm actually installed
 const RELEASE = (() => {
@@ -69,6 +70,7 @@ export const tests = {
   "to-pdf": {label:"SVG to PDF", test:drawToPDF, rounds:200, omit:["wasm"],
     note: "`canvas` & `napi-rs` convert the input SVG to a bitmap rather than exporting it as a vector"
   },
+  "from-pdf": {label:"PDF to PNG: pdf.js", test:drawFromPDF, rounds:20, omit:["wasm"] },
   "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:50},
   "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:100, omit:["wasm"]},
   "gradients": {label:"Gradients", test:drawGradients, rounds:150},
@@ -85,8 +87,11 @@ export async function initialize(libName){
               canvas.toBuffer((err, buf) => err ? rej(err) : res(buf), "image/png")
             ),
             getSvg = canvas => canvas.toBuffer(),
-            getPdf = canvas => canvas.toBuffer()
-        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf}
+            getPdf = canvas => canvas.toBuffer(),
+            pdfGlobals = {DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData},
+            pdfContext = mod.CanvasRenderingContext2D,
+            pdfPath2DPolyfill = true // node-canvas doesn't have its own Path2D
+        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf, pdfGlobals, pdfContext, pdfPath2DPolyfill}
     }else if (libName=='napi'){
         let mod = await import('@napi-rs/canvas'),
             {createCanvas, loadImage, PDFDocument} = mod,
@@ -97,8 +102,9 @@ export async function initialize(libName){
             },
             getBitmap = canvas => canvas.encode("png"),
             getSvg = canvas => canvas.getContent(),
-            getPdf = canvas => { canvas._pdfDoc.endPage(); return canvas._pdfDoc.close() }
-        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf}
+            getPdf = canvas => { canvas._pdfDoc.endPage(); return canvas._pdfDoc.close() },
+            pdfGlobals = {Path2D:mod.Path2D, DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData}
+        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf, pdfGlobals}
     }else if (libName=='wasm'){
       let {default:init} = await import('canvaskit-wasm'),
           CanvasKit = await init({
@@ -121,8 +127,9 @@ export async function initialize(libName){
             createPdfCanvas = createCanvas,
             getBitmap = canvas => canvas.toBuffer("png"),
             getSvg = canvas => canvas.toBuffer("svg", {outline:true}),
-            getPdf = canvas => canvas.toBuffer("pdf")
-        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf, isAsync, isSkia:true}
+            getPdf = canvas => canvas.toBuffer("pdf"),
+            pdfGlobals = {Path2D:mod.Path2D, DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData}
+        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf, pdfGlobals, isAsync, isSkia:true}
     }
 }
 

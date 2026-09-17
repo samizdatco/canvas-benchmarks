@@ -17,6 +17,8 @@
     "canvaskit-wasm": "latest",
     "chalk": "^5.4.1",
     "markdown-table": "^3.0.4",
+    "path2d": "^0.3.4",
+    "pdfjs-dist": "^6.3.289",
     "random-seed": "^0.3.0",
     "skia-canvas": "latest",
     "systeminformation": "^5.27.7"
