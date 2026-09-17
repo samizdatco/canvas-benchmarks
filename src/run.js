@@ -36,8 +36,14 @@ async function testLibrary(libID, testID, outputDir=''){
     let lib = await initialize(libID),
         {test, rounds} = tests[testID] || {}
 
-    // run the test a few times without timing first
-    for (let i=0; i<WARMUP; i++) await test(lib)
+    // run the test a few times without timing first; a test may throw an `unsupported`
+    // error to opt this library out at runtime (e.g. a build whose loadImage can't decode PDF)
+    try{
+      for (let i=0; i<WARMUP; i++) await test(lib)
+    }catch(e){
+      if (e?.unsupported){ console.log(toJSON({test:testID, unsupported:true})); return }
+      throw e
+    }
 
     // run either serially or in a Promise.all pool
     let execStart = performance.now()

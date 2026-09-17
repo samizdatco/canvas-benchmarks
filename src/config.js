@@ -32,6 +32,7 @@ import drawText from '../tests/text.js'
 import drawToSVG from '../tests/to-svg.js'
 import drawToPDF from '../tests/to-pdf.js'
 import drawFromPDF from '../tests/from-pdf.js'
+import drawFromPDFNative from '../tests/from-pdf-native.js'
 
 // label the release rows with whichever version npm actually installed
 const RELEASE = (() => {
@@ -56,6 +57,9 @@ export const libs = mode === 'prerelease' ? {
     : {name:'skia-canvas (async)', color:"cyan"},
 }
 
+// from-pdf-native uses skia-canvas's own PDF decoding, so it runs on the skia rows only.
+const nonSkia = Object.keys(libs).filter(key => !(libs[key].skia || key.startsWith('skia-')))
+
 export const tests = {
   "cold-start": {label:"Startup latency", test:null, rounds:100},
   "house": {label:"Simple house", test:drawHouse, rounds:200},
@@ -71,6 +75,7 @@ export const tests = {
     note: "`canvas` & `napi-rs` convert the input SVG to a bitmap rather than exporting it as a vector"
   },
   "from-pdf": {label:"PDF to PNG: pdf.js", test:drawFromPDF, rounds:20, omit:["wasm"] },
+  "from-pdf-native": {label:"PDF to PNG: native", test:drawFromPDFNative, rounds:20, omit:nonSkia },
   "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:50},
   "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:100, omit:["wasm"]},
   "gradients": {label:"Gradients", test:drawGradients, rounds:150},
