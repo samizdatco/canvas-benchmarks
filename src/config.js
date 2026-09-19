@@ -22,6 +22,7 @@ export const LOCAL_MODULE = pathToFileURL(path.join(LOCAL_DIR, 'lib/index.mjs'))
 export const LOCAL_BINARY = path.join(LOCAL_DIR, 'lib/skia.node')
 
 import drawBeziers from '../tests/beziers.js'
+import drawLineChart from '../tests/line-chart.js'
 import drawSVG from '../tests/from-svg.js'
 import drawGradients from '../tests/gradients.js'
 import drawHouse from '../tests/house.js'
@@ -67,6 +68,7 @@ export const tests = {
     note:"`canvaskit-wasm` renders the shapes, but positions them incorrectly"
   },
   "beziers": {label:"Bezier curves", test:drawBeziers, rounds:20},
+  "line-chart": {label:"Dense line chart", test:drawLineChart, rounds:100},
   "from-svg": {label:"SVG to PNG", test:drawSVG, rounds:100, omit:["wasm"]},
   "to-svg": {label:"SVG to SVG", test:drawToSVG, rounds:200, omit:["wasm"],
     note: "`canvas` & `napi-rs` convert the input SVG to a bitmap rather than exporting it as a vector"
