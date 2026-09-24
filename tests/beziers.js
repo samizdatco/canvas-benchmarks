@@ -1,10 +1,10 @@
 import seed from 'random-seed'
 
 export default function drawSpaghetti({createCanvas, getBitmap}){
-    let size = 1024,
+    let size = 512,
         canvas = createCanvas(size, size),
         ctx = canvas.getContext('2d'),
-        count = 150,
+        count = 400,
         points = 10,
         rng = seed(process.env.SEED || 123),
         coord = () => rng.intBetween(0, size),
@@ -21,7 +21,7 @@ export default function drawSpaghetti({createCanvas, getBitmap}){
             )
         }
 
-        ctx.lineWidth = [1, 3, 5, 10, 20, 40][rng.intBetween(0,5)]
+        ctx.lineWidth = [0.5, 1.5, 2.5, 5, 10, 20][rng.intBetween(0,5)]
         ctx.strokeStyle = colors[rng.intBetween(0, colors.length-1)]
         ctx.globalAlpha = rng.floatBetween(0.1, 0.5)
         ctx.stroke()

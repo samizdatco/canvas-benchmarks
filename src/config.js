@@ -67,10 +67,10 @@ export const tests = {
   "path2d": {label:"Complex shapes", test:drawPaths, rounds:200,
     note:"`canvaskit-wasm` renders the shapes, but positions them incorrectly"
   },
-  "beziers": {label:"Bezier curves", test:drawBeziers, rounds:20},
+  "beziers": {label:"Bezier curves", test:drawBeziers, rounds:40},
   "line-chart": {label:"Dense line chart", test:drawLineChart, rounds:100},
   "from-svg": {label:"SVG to PNG", test:drawSVG, rounds:100, omit:["wasm"]},
-  "to-svg": {label:"SVG to SVG", test:drawToSVG, rounds:200, omit:["wasm"],
+  "to-svg": {label:"SVG to SVG", test:drawToSVG, rounds:100, omit:["wasm"],
     note: "`canvas` & `napi-rs` convert the input SVG to a bitmap rather than exporting it as a vector"
   },
   "to-pdf": {label:"SVG to PDF", test:drawToPDF, rounds:200, omit:["wasm"],
@@ -83,9 +83,9 @@ export const tests = {
     test:drawFromPDFNative, rounds:20, omit:nonSkia, under:"from-pdf", // under = fold into other results
     note: "[rendered natively](:test:) in Rust:" // :test: = replace with link to test's js file
   },
-  "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:50},
-  "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:100, omit:["wasm"]},
-  "gradients": {label:"Gradients", test:drawGradients, rounds:150},
+  "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:100},
+  "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:50, omit:["wasm"]},
+  "gradients": {label:"Gradients", test:drawGradients, rounds:250},
   "text": {label:"Basic text", test:drawText, rounds:200},
 }
 

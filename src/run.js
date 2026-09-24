@@ -9,8 +9,8 @@ import {printHeader, printResult, formatResults} from './format.js'
 import {tests, libs, initialize, sysInfo, mode, LOCAL_DIR, LOCAL_BINARY} from './config.js'
 
 const exec = promisify(child_process.exec);
-const WARMUP = 20 // number of times to run a test before starting the timer
-const SETTLE = 4 // number of seconds to wait in between libraries
+const WARMUP = {min:5, max:20, ms:250} // run at least `min` but only continue until `ms` has elapsed
+const SETTLE = 1 // number of seconds to wait in between libraries
 
 const sleep = (sec) => new Promise(res => setTimeout(res, 1000*sec))
 const toJSON = obj => JSON.stringify(obj, null, "  ")
@@ -39,7 +39,11 @@ async function testLibrary(libID, testID, outputDir=''){
     // run the test a few times without timing first; a test may throw an `unsupported`
     // error to opt this library out at runtime (e.g. a build whose loadImage can't decode PDF)
     try{
-      for (let i=0; i<WARMUP; i++) await test(lib)
+      let warmedAt = performance.now()
+      for (let i=0; i<WARMUP.max; i++){
+        await test(lib)
+        if (i+1 >= WARMUP.min && performance.now() - warmedAt >= WARMUP.ms) break
+      }
     }catch(e){
       if (e?.unsupported){ console.log(toJSON({test:testID, unsupported:true})); return }
       throw e
@@ -95,8 +99,8 @@ async function runTests(testIDs, outputDir=''){
         if (isSkia && lib.endsWith('-async')) continue
         if (isSkia) name = name.replace(/\s*\((serial|async)\)\s*$/, '')
 
-        // run a few times without timing first
-        for (let i=0; i<WARMUP; i++) await startUp(lib)
+        // run a few times to warm up the file cache first
+        for (let i=0; i<WARMUP.min; i++) await startUp(lib)
 
         let ms = 0
         for (let i=0; i<rounds; i++){
