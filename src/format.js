@@ -54,41 +54,53 @@ export function mdFrontmatter(info, date){
 
 export function formatResults({date, info, benchmarks}, outputDir){
   let output = mdFrontmatter(info, date)
-  let maxTime = benchmarks.reduce((acc, {ms}) => Math.max(ms || 0, acc), 0)
-  let bars = new SvgBars(maxTime)
 
-  for (let [id, {label, rounds, note}] of Object.entries(tests)){
-    let runs = benchmarks.filter(r => r.test==id)
+  // the baseLib is marked as `baseline` in config.js and its time sets the 1x for Relative Speed values
+  let baseLib = Object.keys(libs).find(lib => libs[lib].baseline),
+      rowsFor = id => Object.keys(libs)
+                            .map(lib => benchmarks.find(r => r.test==id && r.lib==lib))
+                            .filter(Boolean),
+      bars = new SvgBars()
 
-    let table = [
-      ["Library", "Per Run", `Total Time (${rounds} iterations)`]
+  for (let [id, {label, rounds, note, timing, under}] of Object.entries(tests)){
+    let runs = rowsFor(id),
+        baseline = (under ? rowsFor(under) : runs).find(r => r.lib==baseLib && !r.unsupported)
+    if (under) runs = runs.filter(r => !r.unsupported) // a continuation lists only what it supports
+    if (!runs.length || (!timing && !baseline)) continue
+
+    let table = [ timing ? ["Library", "Elapsed Time"]
+                : under ? ["", "", ""] // continues another table so skip header
+                : ["Library", "Per Run", `Relative Speed (${rounds} iterations)`]
     ].concat(runs.map(({lib, test, ms, unsupported}) => {
       let {name} = libs[lib],
           ext = (id=='to-svg') ? 'svg' : (id=='to-pdf') ? 'pdf' : 'png',
           image = `${id}_${lib}.${ext}`,
-          link = existsSync(`${outputDir}/snapshots/${image}`) ? `[👁️](snapshots/${image})` : '\u2003\u2003',
-          na = mdCode('\u00a0—————\u00a0'),
-          spacer = '\u00a0\u00a0\u00a0'
+          link = existsSync(`${outputDir}/snapshots/${image}`) ? `[👁️](snapshots/${image})` : '  ',
+          na = mdCode(' ————— '),   // as wide as an `elapsed()` time
+          naSpeed = mdCode(' ——— '), // as wide as a relative-speed multiplier
+          spacer = '   '
 
       // don't list (sync) and (async) redundantly
       if (test=='cold-start') name = name.replace(/ \(.*$/,'')
 
-      return unsupported ? [
-        name,
-        na,
-        na + spacer + mdItalic("not supported")
-      ] : [
-        `${mdItalic(name)} ${link}`,
-        `${mdCode(elapsed(ms/rounds))}`,
-        `${mdCode(elapsed(ms))} ${bars.addBar(ms/1000, lib, id)}`
-      ]
+      // a `timing` result has two columns with a dot plot sharing the elapsed-time cell
+      if (timing) return unsupported
+        ? [name, na + spacer + mdItalic("not supported")]
+        : [`${mdItalic(name)} ${link}`, `${mdCode(elapsed(ms/rounds))} ${bars.addDot(ms/rounds, lib, id)}`]
+
+      // keep relative speed multipliers at a fixed-width of 5 chars
+      let rate = baseline.ms / ms,
+          speedup = `${rate.toFixed(rate < 100 ? 1 : 0)}×`.padStart(5, '\u00a0')
+      return unsupported
+        ? [name, na, naSpeed + spacer + mdItalic("not supported")]
+        : [`${mdItalic(name)} ${link}`,
+           mdCode(elapsed(ms/rounds)),
+           `${mdCode(speedup)} ${bars.addBar(rate, lib, id)}`]
     }))
 
-    if (runs.length){
-      output.push(`\n### [${label}](/tests/${id}.js)`)
-      if (note) output.push(`> Note: ${note}\n`)
-      output.push(markdownTable(table))
-    }
+    if (!under) output.push(`\n### [${label}](/tests/${id}.js)`)
+    if (note) output.push(`${under ? '\n' : ''}> *${note.replace(/\(:test:\)/g, `(/tests/${id}.js)`)}*\n`)
+    output.push(markdownTable(table))
   }
 
   return [output.join('\n'), bars.toString()]
@@ -98,30 +110,87 @@ class SvgBars{
   width = 250
   height = 16
   pad = 10
+  max = 11     // relative-speed axis max
+  msSpan = 250 // dot-plot max
   bars = []
 
-  constructor(maxTime){
+  constructor(){
     // import skia-canvas as needed so it doesn't interfere with the cold-start test's accuracy
     this.Canvas = createRequire(import.meta.url)('skia-canvas').Canvas
-    this.max = Math.ceil(maxTime/1000)
   }
 
-  addBar(ms, lib, test){
+  addBar(rate, lib, test){
     let {pad, width, height, max, Canvas} = this,
         canvas = new Canvas(width+pad, height),
         ctx = canvas.getContext("2d"),
-        anchor = `${test}_${lib}`
+        span = Math.min(rate, max)
 
     ctx.beginPath()
-    for (let mark=0; mark<ms; mark++){
+    for (let mark=0; mark<span; mark++){
       let x = pad + (mark * width/max)
-      let w = pad + ((mark+1) * width/max) - x - .5
-      ctx.rect(x, 0, w, height)
+      ctx.rect(x, 0, pad + ((mark+1) * width/max) - x - .5, height)
     }
     ctx.clip()
     ctx.fillStyle = palette[libs[lib].color]
-    ctx.fillRect(pad, 4, ms/max * width, height)
 
+    let top = 4, right = pad + span/max * width
+    if (rate <= max){
+      ctx.fillRect(pad, top, right - pad, height - top)
+    }else{
+      // draw a jagged edge for any bars that would overflow the axis `max`
+      let steps = 3, notch = 3, gap = 3.33, // three segments: 1.5 cycles of the zigzag
+          line = pad + (max - 1) * width/max,
+          zig = []
+      for (let i=0; i<=steps; i++){
+        zig.push([(i%2 ? -notch : notch)/2, top + (height - top)*i/steps])
+      }
+
+      // the main part of the bar
+      ctx.beginPath()
+      ctx.moveTo(pad, top)
+      for (let [dx, y] of zig) ctx.lineTo(line - gap/2 + dx, y)
+      ctx.lineTo(pad, height)
+      ctx.closePath()
+
+      // the tail of the bar after the break
+      ctx.moveTo(right, top)
+      ctx.lineTo(right, height)
+      for (let i=zig.length-1; i>=0; i--) ctx.lineTo(line + gap/2 + zig[i][0], zig[i][1])
+      ctx.closePath()
+      ctx.fill()
+    }
+
+    return this.emit(canvas, `${test}_${lib}`)
+  }
+
+  addDot(ms, lib, test){
+    let {pad, width, height, msSpan, Canvas} = this,
+        canvas = new Canvas(width+pad, height),
+        ctx = canvas.getContext("2d"),
+        mid = height/2
+
+    ctx.strokeStyle = 'hsla(0, 0%, 50%, .75)'
+    ctx.beginPath()
+    ctx.moveTo(pad, mid)
+    ctx.lineTo(pad + width, mid)
+    for (let t=0; t<=msSpan; t+=50){
+      // draw a tick every 50ms alternating to full height at the hundreds
+      let x = Math.min(pad + width - .5, Math.max(pad + .5, pad + t/msSpan * width)),
+          reach = (t % 100 ? .4 : 1) * height/2
+      ctx.moveTo(x, mid - reach)
+      ctx.lineTo(x, mid + reach)
+    }
+    ctx.stroke()
+
+    ctx.fillStyle = palette[libs[lib].color]
+    ctx.beginPath()
+    ctx.arc(pad + Math.min(ms, msSpan)/msSpan * width, mid, 5, 0, 2*Math.PI)
+    ctx.fill()
+
+    return this.emit(canvas, `${test}_${lib}`)
+  }
+
+  emit(canvas, anchor){
     let svg = canvas.toBufferSync("svg").toString(),
         inner = svg.match(/<svg.*?>(.*?)<\/svg>/s)[1].trim()
     this.bars.push(`<g class="bar" id="${anchor}">\n    ${inner}\n</g>`)

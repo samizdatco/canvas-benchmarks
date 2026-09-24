@@ -42,13 +42,13 @@ const RELEASE = (() => {
 })()
 
 export const libs = mode === 'prerelease' ? {
-  "release-sync":  {name:`skia-canvas · ${RELEASE} (serial)`, color:"blue",  skia:true, module:'skia-canvas', async:false},
+  "release-sync":  {name:`skia-canvas · ${RELEASE} (serial)`, color:"blue",  skia:true, module:'skia-canvas', async:false, baseline:true},
   "release-async": {name:`skia-canvas · ${RELEASE} (async)`,  color:"cyan",  skia:true, module:'skia-canvas', async:true},
   "local-sync":    {name:'skia-canvas · local (serial)',   color:"green", skia:true, module:LOCAL_MODULE, async:false},
   "local-async":   {name:'skia-canvas · local (async)',    color:"red",   skia:true, module:LOCAL_MODULE, async:true},
 } : {
   "wasm": {name:'canvaskit-wasm', color:"green"},
-  "canvas": {name:'canvas', color:"red"},
+  "canvas": {name:'canvas', color:"red", baseline:true}, // baseline = 1x reference for relative speed
   "napi": {name:'@napi-rs/canvas', color:"yellow"},
   "skia-sync": mode === 'local'
     ? {name:'skia-canvas · local (serial)', color:"blue", skia:true, module:LOCAL_MODULE}
@@ -62,7 +62,7 @@ export const libs = mode === 'prerelease' ? {
 const nonSkia = Object.keys(libs).filter(key => !(libs[key].skia || key.startsWith('skia-')))
 
 export const tests = {
-  "cold-start": {label:"Startup latency", test:null, rounds:100},
+  "cold-start": {label:"Startup latency", test:null, rounds:100, timing:true}, // timing = show raw-ms dot-plot
   "house": {label:"Simple house", test:drawHouse, rounds:200},
   "path2d": {label:"Complex shapes", test:drawPaths, rounds:200,
     note:"`canvaskit-wasm` renders the shapes, but positions them incorrectly"
@@ -76,8 +76,13 @@ export const tests = {
   "to-pdf": {label:"SVG to PDF", test:drawToPDF, rounds:200, omit:["wasm"],
     note: "`canvas` & `napi-rs` convert the input SVG to a bitmap rather than exporting it as a vector"
   },
-  "from-pdf": {label:"PDF to PNG: pdf.js", test:drawFromPDF, rounds:20, omit:["wasm"] },
-  "from-pdf-native": {label:"PDF to PNG: native", test:drawFromPDFNative, rounds:20, omit:nonSkia },
+  "from-pdf": {label:"PDF to PNG", test:drawFromPDF, rounds:20, omit:["wasm"],
+    note: "rendered in JavaScript using [**PDF.js**](https://www.npmjs.com/package/pdfjs-dist):"
+  },
+  "from-pdf-native": {label:"PDF to PNG: native",
+    test:drawFromPDFNative, rounds:20, omit:nonSkia, under:"from-pdf", // under = fold into other results
+    note: "[rendered natively](:test:) in Rust:" // :test: = replace with link to test's js file
+  },
   "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:50},
   "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:100, omit:["wasm"]},
   "gradients": {label:"Gradients", test:drawGradients, rounds:150},
