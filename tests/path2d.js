@@ -1,7 +1,9 @@
 import seed from 'random-seed'
 
 export default function drawSnowflakes({createCanvas, getBitmap}){
-    let canvas = createCanvas(1024, 768),
+    let width = 1024,
+        height = 768,
+        canvas = createCanvas(width, height),
         ctx = canvas.getContext('2d'),
         TAU = Math.PI * 2,
         count = 100,
@@ -24,8 +26,8 @@ export default function drawSnowflakes({createCanvas, getBitmap}){
   }
 
   for (let i=0; i<count; i++){
-      let x = rng.intBetween(0, canvas.width),
-          y = rng.intBetween(0, canvas.height),
+      let x = rng.intBetween(0, width),
+          y = rng.intBetween(0, height),
           rot = rng.floatBetween(0, TAU)
       ctx.fillStyle = rng.random() < 0.5 ? 'white' : 'black'
       ctx.globalAlpha = rng.random()
