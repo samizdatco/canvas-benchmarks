@@ -36,6 +36,9 @@ async function testLibrary(libID, testID, outputDir=''){
     let lib = await initialize(libID),
         {test, rounds} = tests[testID] || {}
 
+    // any one-time preparation this test needs (registering fonts, etc.), outside the timed region
+    await test.setup?.(lib)
+
     // run the test a few times without timing first; a test may throw an `unsupported`
     // error to opt this library out at runtime (e.g. a build whose loadImage can't decode PDF)
     try{
@@ -64,7 +67,7 @@ async function testLibrary(libID, testID, outputDir=''){
       // save an image with the test's output
       let ext = (testID=='to-svg') ? 'svg' : (testID=='to-pdf') ? 'pdf' : 'png',
           snapshotsDir = `${outputDir}/snapshots`,
-          filename = `/${testID}_${libID}.${ext}`,
+          filename = `${testID}_${libID}.${ext}`,
           dataPrefix = 'data:image/png;base64,',
           snapshot = await test(lib)
 

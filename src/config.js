@@ -102,8 +102,9 @@ export async function initialize(libName){
             getPdf = canvas => canvas.toBuffer(),
             pdfGlobals = {DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData},
             pdfContext = mod.CanvasRenderingContext2D,
-            pdfPath2DPolyfill = true // node-canvas doesn't have its own Path2D
-        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf, pdfGlobals, pdfContext, pdfPath2DPolyfill}
+            pdfPath2DPolyfill = true, // node-canvas doesn't have its own Path2D
+            loadFont = (path, {family, weight, style}) => mod.registerFont(path, {family, weight:String(weight), style})
+        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, loadFont, getBitmap, getSvg, getPdf, pdfGlobals, pdfContext, pdfPath2DPolyfill}
     }else if (libName=='napi'){
         let mod = await import('@napi-rs/canvas'),
             {createCanvas, loadImage, PDFDocument} = mod,
@@ -115,8 +116,9 @@ export async function initialize(libName){
             getBitmap = canvas => canvas.encode("png"),
             getSvg = canvas => canvas.getContent(),
             getPdf = canvas => { canvas._pdfDoc.endPage(); return canvas._pdfDoc.close() },
-            pdfGlobals = {Path2D:mod.Path2D, DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData}
-        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf, pdfGlobals}
+            pdfGlobals = {Path2D:mod.Path2D, DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData},
+            loadFont = (path, {family}) => mod.GlobalFonts.registerFromPath(path, family)
+        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, loadFont, getBitmap, getSvg, getPdf, pdfGlobals}
     }else if (libName=='wasm'){
       let {default:init} = await import('canvaskit-wasm'),
           CanvasKit = await init({
@@ -127,8 +129,14 @@ export async function initialize(libName){
               let img = readFileSync(path)
               return canvas.decodeImage(img)
           },
-          getBitmap = canvas => canvas.toDataURL("image/png")
-      return {lib:libName, createCanvas, loadImage, getBitmap}
+          getBitmap = canvas => canvas.toDataURL("image/png"),
+          fontHolder = CanvasKit.MakeCanvas(1, 1),
+          loadFont = (path, {family, weight, style}) => {
+            let ttf = readFileSync(path)
+            fontHolder.loadFont(ttf.buffer.slice(ttf.byteOffset, ttf.byteOffset + ttf.byteLength),
+                                {family, style, weight:String(weight)})
+          }
+      return {lib:libName, createCanvas, loadImage, loadFont, getBitmap}
     }else if (libName.startsWith('skia-') || libs[libName]?.skia){
         let {module='skia-canvas', async} = libs[libName] ?? {},
             mod = await import(module),
@@ -140,8 +148,9 @@ export async function initialize(libName){
             getBitmap = canvas => canvas.toBuffer("png"),
             getSvg = canvas => canvas.toBuffer("svg", {outline:true}),
             getPdf = canvas => canvas.toBuffer("pdf"),
-            pdfGlobals = {Path2D:mod.Path2D, DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData}
-        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, getBitmap, getSvg, getPdf, pdfGlobals, isAsync, isSkia:true}
+            pdfGlobals = {Path2D:mod.Path2D, DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData},
+            loadFont = (path, {family}) => mod.FontLibrary.use(family, [path])
+        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, loadFont, getBitmap, getSvg, getPdf, pdfGlobals, isAsync, isSkia:true}
     }
 }
 
