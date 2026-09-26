@@ -143,7 +143,7 @@ export async function initialize(libName){
             createCanvas = (w, h) => new Canvas(w, h),
             createSvgCanvas = createCanvas,
             createPdfCanvas = createCanvas,
-            getBitmap = canvas => canvas.toBuffer("png"),
+            getBitmap = canvas => canvas.toBuffer("png", {filtered:'auto'}),
             getSvg = canvas => canvas.toBuffer("svg", {outline:true}),
             getPdf = canvas => canvas.toBuffer("pdf"),
             pdfGlobals = {Path2D:mod.Path2D, DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData},
