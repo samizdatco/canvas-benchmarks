@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import path from 'path'
 import {markdownTable} from 'markdown-table'
-import {readFileSync, writeFileSync, existsSync} from 'fs'
+import {readFileSync, writeFileSync, existsSync, statSync} from 'fs'
 import {fileURLToPath} from 'url'
 import {createRequire} from 'module'
 import {libs, tests} from "./config.js"
@@ -23,6 +23,13 @@ function elapsed(t, pad=7){
         : t < 1000 ? `${Math.round(t)} ms`
         : t < 601000 ? `${(t/1000).toFixed(2)} s`
         : `${Math.floor(t / 60000)}m ${((t % 60000) / 1000).toFixed(2)}s`
+  return s.padStart(pad, '\u00a0')
+}
+
+function fileSize(bytes, pad=7){
+  let s = bytes < 1024 ? `${bytes} B`
+        : bytes < 1048576 ? `${Math.round(bytes/1024)} KB`
+        : `${(bytes/1048576).toFixed(1)} MB`
   return s.padStart(pad, '\u00a0')
 }
 
@@ -69,13 +76,14 @@ export function formatResults({date, info, benchmarks}, outputDir){
     if (!runs.length || (!timing && !baseline)) continue
 
     let table = [ timing ? ["Library", "Elapsed Time"]
-                : under ? ["", "", ""] // continues another table so skip header
-                : ["Library", "Per Run", `Relative Speed (${rounds} iterations)`]
+                : under ? ["", "", "", ""] // continues another table so skip header
+                : ["Library", "Per Run", `Relative Speed (${rounds} iterations)`, "Output"]
     ].concat(runs.map(({lib, test, ms, unsupported}) => {
       let {name} = libs[lib],
           ext = (id=='to-svg') ? 'svg' : (id=='to-pdf') ? 'pdf' : 'png',
           image = `${id}_${lib}.${ext}`,
-          link = existsSync(`${outputDir}/snapshots/${image}`) ? `[👁️](snapshots/${image})` : '  ',
+          snapshot = `${outputDir}/snapshots/${image}`,
+          output = existsSync(snapshot) ? `[${mdCode(fileSize(statSync(snapshot).size))}](snapshots/${image})` : '  ',
           na = mdCode(' ————— '),   // as wide as an `elapsed()` time
           naSpeed = mdCode(' ——— '), // as wide as a relative-speed multiplier
           spacer = '   '
@@ -86,16 +94,17 @@ export function formatResults({date, info, benchmarks}, outputDir){
       // a `timing` result has two columns with a dot plot sharing the elapsed-time cell
       if (timing) return unsupported
         ? [name, na + spacer + mdItalic("not supported")]
-        : [`${mdItalic(name)} ${link}`, `${mdCode(elapsed(ms/rounds))} ${bars.addDot(ms/rounds, lib, id)}`]
+        : [mdItalic(name), `${mdCode(elapsed(ms/rounds))} ${bars.addDot(ms/rounds, lib, id)}`]
 
       // keep relative speed multipliers at a fixed-width of 5 chars
       let rate = baseline.ms / ms,
           speedup = `${rate.toFixed(rate < 100 ? 1 : 0)}×`.padStart(5, '\u00a0')
       return unsupported
-        ? [name, na, naSpeed + spacer + mdItalic("not supported")]
-        : [`${mdItalic(name)} ${link}`,
+        ? [name, na, naSpeed + spacer + mdItalic("not supported"), '  ']
+        : [mdItalic(name),
            mdCode(elapsed(ms/rounds)),
-           `${mdCode(speedup)} ${bars.addBar(rate, lib, id)}`]
+           `${mdCode(speedup)} ${bars.addBar(rate, lib, id)}`,
+           output]
     }))
 
     if (!under) output.push(`\n### [${label}](/tests/${id}.js)`)
