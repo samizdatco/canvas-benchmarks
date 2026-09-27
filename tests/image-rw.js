@@ -2,7 +2,7 @@ import seed from 'random-seed'
 
 export default async function imageReadWrite({lib, isSkia, createCanvas, loadImage, getBitmap}) {
   const size = 512,
-        rounds = 1000,
+        rounds = 4000,
         canvas = createCanvas(size, size),
         ctx = isSkia ? canvas.getContext('2d', {willReadFrequently:true}) : canvas.getContext('2d'),
         img = await loadImage(`${import.meta.dirname}/assets/blend-bg.png`, canvas),
