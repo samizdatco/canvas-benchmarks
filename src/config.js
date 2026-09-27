@@ -62,7 +62,7 @@ const nonSkia = Object.keys(libs).filter(key => !(libs[key].skia || key.startsWi
 
 export const tests = {
   "cold-start": {label:"Startup latency", test:null, rounds:100, timing:true}, // timing = show raw-ms dot-plot
-  "path2d": {label:"Complex shapes", test:drawPaths, rounds:50},
+  "path2d": {label:"Path2D drawing", test:drawPaths, rounds:50},
   "beziers": {label:"Bezier curves", test:drawBeziers, rounds:40},
   "line-chart": {label:"Dense line chart", test:drawLineChart, rounds:100},
   "from-svg": {label:"SVG to PNG", test:drawSVG, rounds:100, omit:["wasm"]},
@@ -82,7 +82,7 @@ export const tests = {
   "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:30},
   "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:50, omit:["wasm"]},
   "gradients": {label:"Gradients", test:drawGradients, rounds:250, omit:["wasm"], format:'jpg'},
-  "text": {label:"Basic text", test:drawText, rounds:200},
+  "text": {label:"Text rendering", test:drawText, rounds:200},
 }
 
 export async function initialize(libName){
@@ -143,7 +143,7 @@ export async function initialize(libName){
             createCanvas = (w, h) => new Canvas(w, h),
             createSvgCanvas = createCanvas,
             createPdfCanvas = createCanvas,
-            getBitmap = canvas => canvas.toBuffer("png", {filtered:'auto'}),
+            getBitmap = canvas => canvas.toBuffer("png", {filters:'auto'}),
             getJpeg = canvas => canvas.toBuffer("jpeg", {quality:0.9}),
             getSvg = canvas => canvas.toBuffer("svg", {outline:true}),
             getPdf = canvas => canvas.toBuffer("pdf"),

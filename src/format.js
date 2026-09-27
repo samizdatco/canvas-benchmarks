@@ -120,7 +120,7 @@ class SvgBars{
   height = 16
   pad = 10
   max = 11     // relative-speed axis max
-  msSpan = 250 // dot-plot max
+  msSpan = 200 // dot-plot max
   bars = []
 
   constructor(){
