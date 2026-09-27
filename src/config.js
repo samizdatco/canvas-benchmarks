@@ -57,7 +57,6 @@ export const libs = mode === 'prerelease' ? {
     : {name:'skia-canvas (async)', color:"cyan"},
 }
 
-// from-pdf-native uses skia-canvas's own PDF decoding, so it runs on the skia rows only.
 const nonSkia = Object.keys(libs).filter(key => !(libs[key].skia || key.startsWith('skia-')))
 
 export const tests = {
@@ -144,7 +143,7 @@ export async function initialize(libName){
             createSvgCanvas = createCanvas,
             createPdfCanvas = createCanvas,
             getBitmap = canvas => canvas.toBuffer("png", {filters:'auto'}),
-            getJpeg = canvas => canvas.toBuffer("jpeg", {quality:0.9}),
+            getJpeg = canvas => canvas.toBuffer("jpeg", {quality:0.9, downsample:true}),
             getSvg = canvas => canvas.toBuffer("svg", {outline:true}),
             getPdf = canvas => canvas.toBuffer("pdf"),
             pdfGlobals = {Path2D:mod.Path2D, DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData},
@@ -161,7 +160,7 @@ function formatBytes(b){
   return `${b.toFixed(2)} TiB`
 }
 
-// describe the local build with its jj log entry
+// Identify the local build by its jj change rather than a version number
 function localVersion(){
   let tmpl = `change_id.short(8) ++ if(description, " — " ++ '"' ++ description.first_line() ++ '"')`
   try{

@@ -54,8 +54,11 @@ export function mdFrontmatter(info, date){
       return /^\d+\.\d+\./.test(v) ? `- [${mdCode(lib)}](https://www.npmjs.com/package/${pkg}): v${v}`
                                     : `- ${mdCode(lib)}: ${v}`
     })
-  ).concat([
-    '> Note: Skia Canvas is tested running in two modes: `serial` and `async`. When running serially, each rendering operation is `await`ed before continuing to the next test iteration. When running asynchronously, all the test iterations are begun at once and are executed in parallel within a `Promise.all` block, making use of the library’s multi-threading.',
+  ).concat(['',
+    "#### Methodology",
+    "For each drawing test, the `canvas` library's time is used as a baseline measurement and the other libraries' Relative Speed values are presented as ‘*n* times faster’ multiples (e.g., `2×` means it ran in half the time). The file sizes listed in the Output column vary between libraries in part due to Skia Canvas’s PNG exporter automatically selecting which adaptive filters to use.",
+    '',
+    "Skia Canvas is tested running in two modes: `serial` and `async`. When running serially, each rendering operation is completed before continuing to the next test iteration. When running asynchronously, all the test iterations are begun at once and are executed in parallel within a `Promise.all` block, making use of the library’s multi-threading.",
   ])
 }
 
@@ -81,11 +84,9 @@ export function formatResults({date, info, benchmarks}, outputDir){
     ].concat(runs.map(({lib, test, ms, unsupported}) => {
       let {name} = libs[lib],
           ext = format || 'png',
-          image = `${id}_${lib}.${ext}`,
-          snapshot = `${outputDir}/snapshots/${image}`,
-          output = existsSync(snapshot) ? `[${mdCode(fileSize(statSync(snapshot).size))}](snapshots/${image})` : '  ',
-          na = mdCode(' ————— '),   // as wide as an `elapsed()` time
+          na = mdCode(' ————— '), // as wide as an `elapsed()` time
           naSpeed = mdCode(' ——— '), // as wide as a relative-speed multiplier
+          naOutput = mdCode(' ————— '), // as wide as the output file size
           spacer = '   '
 
       // don't list (sync) and (async) redundantly
@@ -96,11 +97,15 @@ export function formatResults({date, info, benchmarks}, outputDir){
         ? [name, na + spacer + mdItalic("not supported")]
         : [mdItalic(name), `${mdCode(elapsed(ms/rounds))} ${bars.addDot(ms/rounds, lib, id)}`]
 
-      // keep relative speed multipliers at a fixed-width of 5 chars
+      // normal tests report time, speedup, and output file size
       let rate = baseline.ms / ms,
-          speedup = `${rate.toFixed(rate < 100 ? 1 : 0)}×`.padStart(5, '\u00a0')
+          speedup = `${rate.toFixed(rate < 100 ? 1 : 0)}×`.padStart(5, '\u00a0'),
+          image = `snapshots/${id}_${lib}.${ext}`,
+          snapshot = `${outputDir}/${image}`,
+          output = existsSync(snapshot) ? `[${mdCode(fileSize(statSync(snapshot).size))}](${image})` : naOutput
+
       return unsupported
-        ? [name, na, naSpeed + spacer + mdItalic("not supported"), '  ']
+        ? [name, na, naSpeed + spacer + mdItalic("not supported"), naOutput]
         : [mdItalic(name),
            mdCode(elapsed(ms/rounds)),
            `${mdCode(speedup)} ${bars.addBar(rate, lib, id)}`,
@@ -120,7 +125,7 @@ class SvgBars{
   height = 16
   pad = 10
   max = 11     // relative-speed axis max
-  msSpan = 200 // dot-plot max
+  msSpan = 150 // dot-plot max
   bars = []
 
   constructor(){
@@ -143,7 +148,7 @@ class SvgBars{
     ctx.fillStyle = palette[libs[lib].color]
 
     let top = 4, right = pad + span/max * width
-    if (rate <= max){
+    if (rate < max + 0.05){ // don't break a bar whose label rounds down to the axis max
       ctx.fillRect(pad, top, right - pad, height - top)
     }else{
       // draw a jagged edge for any bars that would overflow the axis `max`
