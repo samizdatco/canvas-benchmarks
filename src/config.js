@@ -81,7 +81,7 @@ export const tests = {
     test:drawFromPDFNative, rounds:20, omit:nonSkia, under:"from-pdf", // under = fold into other results
     note: "[rendered natively](:test:) in Rust:" // :test: = replace with link to test's js file
   },
-  "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:100},
+  "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:30},
   "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:50, omit:["wasm"]},
   "gradients": {label:"Gradients", test:drawGradients, rounds:250},
   "text": {label:"Basic text", test:drawText, rounds:200},
