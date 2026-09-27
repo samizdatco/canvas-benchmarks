@@ -25,7 +25,6 @@ import drawBeziers from '../tests/beziers.js'
 import drawLineChart from '../tests/line-chart.js'
 import drawSVG from '../tests/from-svg.js'
 import drawGradients from '../tests/gradients.js'
-import drawHouse from '../tests/house.js'
 import drawImageScale from '../tests/image-blit.js'
 import drawImageRW from '../tests/image-rw.js'
 import drawPaths from '../tests/path2d.js'
@@ -63,7 +62,6 @@ const nonSkia = Object.keys(libs).filter(key => !(libs[key].skia || key.startsWi
 
 export const tests = {
   "cold-start": {label:"Startup latency", test:null, rounds:100, timing:true}, // timing = show raw-ms dot-plot
-  "house": {label:"Simple house", test:drawHouse, rounds:200},
   "path2d": {label:"Complex shapes", test:drawPaths, rounds:50},
   "beziers": {label:"Bezier curves", test:drawBeziers, rounds:40},
   "line-chart": {label:"Dense line chart", test:drawLineChart, rounds:100},
