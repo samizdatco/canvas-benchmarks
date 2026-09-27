@@ -69,7 +69,7 @@ export function formatResults({date, info, benchmarks}, outputDir){
                             .filter(Boolean),
       bars = new SvgBars()
 
-  for (let [id, {label, rounds, note, timing, under}] of Object.entries(tests)){
+  for (let [id, {label, rounds, note, timing, under, format}] of Object.entries(tests)){
     let runs = rowsFor(id),
         baseline = (under ? rowsFor(under) : runs).find(r => r.lib==baseLib && !r.unsupported)
     if (under) runs = runs.filter(r => !r.unsupported) // a continuation lists only what it supports
@@ -80,7 +80,7 @@ export function formatResults({date, info, benchmarks}, outputDir){
                 : ["Library", "Per Run", `Relative Speed (${rounds} iterations)`, "Output"]
     ].concat(runs.map(({lib, test, ms, unsupported}) => {
       let {name} = libs[lib],
-          ext = (id=='to-svg') ? 'svg' : (id=='to-pdf') ? 'pdf' : 'png',
+          ext = format || 'png',
           image = `${id}_${lib}.${ext}`,
           snapshot = `${outputDir}/snapshots/${image}`,
           output = existsSync(snapshot) ? `[${mdCode(fileSize(statSync(snapshot).size))}](snapshots/${image})` : '  ',

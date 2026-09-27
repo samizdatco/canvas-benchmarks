@@ -65,7 +65,7 @@ async function testLibrary(libID, testID, outputDir=''){
 
     if (outputDir){
       // save an image with the test's output
-      let ext = (testID=='to-svg') ? 'svg' : (testID=='to-pdf') ? 'pdf' : 'png',
+      let ext = tests[testID].format || 'png',
           snapshotsDir = `${outputDir}/snapshots`,
           filename = `${testID}_${libID}.${ext}`,
           dataPrefix = 'data:image/png;base64,',

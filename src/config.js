@@ -68,10 +68,10 @@ export const tests = {
   "beziers": {label:"Bezier curves", test:drawBeziers, rounds:40},
   "line-chart": {label:"Dense line chart", test:drawLineChart, rounds:100},
   "from-svg": {label:"SVG to PNG", test:drawSVG, rounds:100, omit:["wasm"]},
-  "to-svg": {label:"SVG to SVG", test:drawToSVG, rounds:100, omit:["wasm"],
+  "to-svg": {label:"SVG to SVG", test:drawToSVG, rounds:100, omit:["wasm"], format:'svg',
     note: "`canvas` & `napi-rs` convert the input SVG to a bitmap rather than exporting it as a vector"
   },
-  "to-pdf": {label:"SVG to PDF", test:drawToPDF, rounds:200, omit:["wasm"],
+  "to-pdf": {label:"SVG to PDF", test:drawToPDF, rounds:200, omit:["wasm"], format:'pdf',
     note: "`canvas` & `napi-rs` convert the input SVG to a bitmap rather than exporting it as a vector"
   },
   "from-pdf": {label:"PDF to PNG", test:drawFromPDF, rounds:20, omit:["wasm"],
@@ -83,7 +83,7 @@ export const tests = {
   },
   "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:30},
   "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:50, omit:["wasm"]},
-  "gradients": {label:"Gradients", test:drawGradients, rounds:250},
+  "gradients": {label:"Gradients", test:drawGradients, rounds:250, omit:["wasm"], format:'jpg'},
   "text": {label:"Basic text", test:drawText, rounds:200},
 }
 
@@ -96,13 +96,14 @@ export async function initialize(libName){
             getBitmap = canvas => new Promise((res, rej) =>
               canvas.toBuffer((err, buf) => err ? rej(err) : res(buf), "image/png")
             ),
+            getJpeg = canvas => canvas.toBuffer("image/jpeg", {quality:0.9}),
             getSvg = canvas => canvas.toBuffer(),
             getPdf = canvas => canvas.toBuffer(),
             pdfGlobals = {DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData},
             pdfContext = mod.CanvasRenderingContext2D,
             pdfPath2DPolyfill = true, // node-canvas doesn't have its own Path2D
             loadFont = (path, {family, weight, style}) => mod.registerFont(path, {family, weight:String(weight), style})
-        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, loadFont, getBitmap, getSvg, getPdf, pdfGlobals, pdfContext, pdfPath2DPolyfill}
+        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, loadFont, getBitmap, getJpeg, getSvg, getPdf, pdfGlobals, pdfContext, pdfPath2DPolyfill}
     }else if (libName=='napi'){
         let mod = await import('@napi-rs/canvas'),
             {createCanvas, loadImage, PDFDocument} = mod,
@@ -112,11 +113,12 @@ export async function initialize(libName){
               return {_pdfDoc: doc, ctx: doc.beginPage(w, h), getContext(){ return this.ctx }}
             },
             getBitmap = canvas => canvas.encode("png"),
+            getJpeg = canvas => canvas.encode("jpeg", 90),
             getSvg = canvas => canvas.getContent(),
             getPdf = canvas => { canvas._pdfDoc.endPage(); return canvas._pdfDoc.close() },
             pdfGlobals = {Path2D:mod.Path2D, DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData},
             loadFont = (path, {family}) => mod.GlobalFonts.registerFromPath(path, family)
-        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, loadFont, getBitmap, getSvg, getPdf, pdfGlobals}
+        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, loadFont, getBitmap, getJpeg, getSvg, getPdf, pdfGlobals}
     }else if (libName=='wasm'){
       let {default:init} = await import('canvaskit-wasm'),
           CanvasKit = await init({
@@ -144,11 +146,12 @@ export async function initialize(libName){
             createSvgCanvas = createCanvas,
             createPdfCanvas = createCanvas,
             getBitmap = canvas => canvas.toBuffer("png", {filtered:'auto'}),
+            getJpeg = canvas => canvas.toBuffer("jpeg", {quality:0.9}),
             getSvg = canvas => canvas.toBuffer("svg", {outline:true}),
             getPdf = canvas => canvas.toBuffer("pdf"),
             pdfGlobals = {Path2D:mod.Path2D, DOMMatrix:mod.DOMMatrix, ImageData:mod.ImageData},
             loadFont = (path, {family}) => mod.FontLibrary.use(family, [path])
-        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, loadFont, getBitmap, getSvg, getPdf, pdfGlobals, isAsync, isSkia:true}
+        return {lib:libName, createCanvas, createSvgCanvas, createPdfCanvas, loadImage, loadFont, getBitmap, getJpeg, getSvg, getPdf, pdfGlobals, isAsync, isSkia:true}
     }
 }
 
