@@ -76,7 +76,7 @@ export const tests = {
   },
   "from-pdf-native": {label:"PDF to PNG: native",
     test:drawFromPDFNative, rounds:20, omit:nonSkia, under:"from-pdf", // under = fold into other results
-    note: "[rendered natively](:test:) in Rust:" // :test: = replace with link to test's js file
+    note: "[rendered natively](:test:) in Rust using [Hayro](https://github.com/laurenzv/hayro):" // :test: = replace with link to test's js file
   },
   "image-blit": {label:"Scale/rotate images", test:drawImageScale, rounds:30},
   "image-rw": {label:"Get/put ImageData", test:drawImageRW, rounds:50, omit:["wasm"]},

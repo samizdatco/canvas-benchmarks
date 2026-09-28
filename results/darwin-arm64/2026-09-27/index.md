@@ -12,6 +12,7 @@
 - [`@napi-rs/canvas`](https://www.npmjs.com/package/@napi-rs/canvas): v1.0.8
 - [`canvaskit-wasm`](https://www.npmjs.com/package/canvaskit-wasm): v0.42.0
 - [`skia-canvas`](https://www.npmjs.com/package/skia-canvas): v4.0.0-rc4
+
 #### Methodology
 For each drawing test, the `canvas` library's time is used as a baseline measurement and the other libraries' Relative Speed values are presented as ‘*n* times faster’ multiples (e.g., `2×` means it ran in half the time). The file sizes listed in the Output column vary between libraries in part due to Skia Canvas’s PNG exporter automatically selecting which adaptive filters to use.
 
@@ -94,7 +95,7 @@ Skia Canvas is tested running in two modes: `serial` and `async`. When running s
 | *skia-canvas (serial)* | ` 458 ms` | ` 1.7×` ![ ](bars.svg#from-pdf_skia-sync)  | [` 1.9 MB`](snapshots/from-pdf_skia-sync.png)  |
 | *skia-canvas (async)*  | ` 248 ms` | ` 3.1×` ![ ](bars.svg#from-pdf_skia-async) | [` 1.9 MB`](snapshots/from-pdf_skia-async.png) |
 
-> *[rendered natively](/tests/from-pdf-native.js) in Rust:*
+> *[rendered natively](/tests/from-pdf-native.js) in Rust using [Hayro](https://github.com/laurenzv/hayro):*
 
 |                        |           |                                                   |                                                       |
 | ---------------------- | --------- | ------------------------------------------------- | ----------------------------------------------------- |
