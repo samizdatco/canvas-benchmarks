@@ -25,8 +25,9 @@ export default function drawLineChart({createCanvas, getBitmap}){
 
   // draw lines
   const mid = plotT + plotH/2
-  ctx.lineWidth = 1
   for (let s = 0; s < series; s++){
+    // wide lines first so the hairlines aren't overpainted
+    ctx.lineWidth = s < series/2 ? 3 : 1
     let trend = rng.floatBetween(-0.02, 0.02),
         volatility = rng.floatBetween(1.8, 3.2),
         y = mid
