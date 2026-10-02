@@ -20,7 +20,7 @@
     "path2d": "^0.3.4",
     "pdfjs-dist": "^6.3.289",
     "random-seed": "^0.3.0",
-    "skia-canvas": "^4.0.0-rc4",
+    "skia-canvas": "4.0.0-rc6",
     "systeminformation": "^5.33.13"
   }
 }
